@@ -15,7 +15,7 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Dark" />
 
-    <net.simno.klingar.ui.widget.SquareImageView
+    <com.awsomefox.sprocket.ui.widget.SquareImageView
         android:id="@+id/player_background_image"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
