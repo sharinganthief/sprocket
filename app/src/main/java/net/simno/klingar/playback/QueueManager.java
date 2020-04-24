@@ -15,13 +15,13 @@
  */
 package net.simno.klingar.playback;
 
-import android.support.annotation.IntDef;
-import android.support.v4.util.Pair;
+import androidx.annotation.IntDef;
 
 import com.jakewharton.rxrelay2.BehaviorRelay;
 
 import net.simno.klingar.data.model.Track;
 import net.simno.klingar.data.model.TrackComparator;
+import net.simno.klingar.util.Pair;
 
 import java.lang.annotation.Retention;
 import java.util.ArrayList;

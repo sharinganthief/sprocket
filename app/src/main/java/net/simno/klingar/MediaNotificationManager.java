@@ -25,19 +25,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.media.app.NotificationCompat.MediaStyle;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.media.session.PlaybackStateCompat.State;
-import android.support.v4.util.Pair;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+import androidx.media.app.NotificationCompat.MediaStyle;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import net.simno.klingar.data.model.Track;
@@ -45,6 +48,7 @@ import net.simno.klingar.playback.MusicController;
 import net.simno.klingar.playback.MusicService;
 import net.simno.klingar.playback.QueueManager;
 import net.simno.klingar.ui.KlingarActivity;
+import net.simno.klingar.util.Pair;
 import net.simno.klingar.util.Rx;
 
 import io.reactivex.Flowable;
@@ -216,9 +220,9 @@ public class MediaNotificationManager extends BroadcastReceiver {
         musicController.previous();
         break;
       case ACTION_STOP_CAST:
-        Intent i = new Intent(context, MusicService.class);
-        i.setAction(MusicService.ACTION_STOP_CASTING);
-        service.startService(i);
+        Intent stopCastIntent = new Intent(context, MusicService.class);
+        stopCastIntent.setAction(MusicService.ACTION_STOP_CASTING);
+        ContextCompat.startForegroundService(service, stopCastIntent);
         break;
       default:
     }
@@ -319,13 +323,19 @@ public class MediaNotificationManager extends BroadcastReceiver {
         .asBitmap()
         .load(url)
         .apply(RequestOptions.overrideOf(iconWidth, iconHeight))
-        .into(new SimpleTarget<Bitmap>() {
+        .into(new CustomTarget<Bitmap>() {
           @Override
-          public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+          public void onResourceReady(
+              @NonNull Bitmap resource,
+              Transition<? super Bitmap> transition
+          ) {
             if (TextUtils.equals(currentTrack.thumb(), url)) {
               builder.setLargeIcon(resource);
               notificationManager.notify(NOTIFICATION_ID, builder.build());
             }
+          }
+
+          @Override public void onLoadCleared(@Nullable Drawable placeholder) {
           }
         });
   }
