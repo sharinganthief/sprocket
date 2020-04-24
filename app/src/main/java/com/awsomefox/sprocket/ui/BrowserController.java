@@ -34,9 +34,8 @@ import androidx.core.widget.ContentLoadingProgressBar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bluelinelabs.conductor.Router;
-import com.bluelinelabs.conductor.RouterTransaction;
-import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.SprocketApp;
 import com.awsomefox.sprocket.data.Key;
 import com.awsomefox.sprocket.data.ServerManager;
 import com.awsomefox.sprocket.data.model.Album;
@@ -53,9 +52,9 @@ import com.awsomefox.sprocket.ui.widget.DividerItemDecoration;
 import com.awsomefox.sprocket.ui.widget.EndScrollListener;
 import com.awsomefox.sprocket.util.Rx;
 import com.awsomefox.sprocket.util.Views;
-
-import com.awsomefox.sprocket.SprocketApp;
-import com.awsomefox.sprocket.R;
+import com.bluelinelabs.conductor.Router;
+import com.bluelinelabs.conductor.RouterTransaction;
+import com.google.android.gms.cast.framework.CastButtonFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
