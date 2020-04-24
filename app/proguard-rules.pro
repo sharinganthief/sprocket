@@ -1,5 +1,5 @@
 # Klingar
--keep class net.simno.klingar.data.api.model.** { *; }
+-keep class com.awsomefox.sprocket.data.api.model.** { *; }
 
 
 # Kotlin

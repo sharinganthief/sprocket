@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <net.simno.klingar.ui.widget.SquareImageView
+        <com.awsomefox.sprocket.ui.widget.SquareImageView
             android:id="@+id/album_thumb"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"

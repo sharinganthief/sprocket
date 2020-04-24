@@ -5,4 +5,4 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="net.simno.klingar.ui.KlingarActivity" />
+    tools:context="com.awsomefox.sprocket.com.simno.sprocket.ui.KlingarActivity" />
