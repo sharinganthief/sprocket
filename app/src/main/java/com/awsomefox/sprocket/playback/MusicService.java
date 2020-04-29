@@ -37,17 +37,16 @@ import androidx.core.content.ContextCompat;
 import androidx.media.session.MediaButtonReceiver;
 import androidx.mediarouter.media.MediaRouter;
 
+import com.awsomefox.sprocket.AndroidClock;
+import com.awsomefox.sprocket.MediaNotificationManager;
+import com.awsomefox.sprocket.SprocketApp;
+import com.awsomefox.sprocket.data.api.MediaService;
 import com.awsomefox.sprocket.ui.SprocketActivity;
+import com.awsomefox.sprocket.util.Rx;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
-
-import com.awsomefox.sprocket.AndroidClock;
-import com.awsomefox.sprocket.SprocketApp;
-import com.awsomefox.sprocket.MediaNotificationManager;
-import com.awsomefox.sprocket.data.api.MediaService;
-import com.awsomefox.sprocket.util.Rx;
 
 import java.lang.ref.WeakReference;
 
@@ -67,7 +66,8 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
   private final IBinder binder = new LocalBinder();
   private final DelayedStopHandler delayedStopHandler = new DelayedStopHandler(this);
   @Inject QueueManager queueManager;
-  @Inject MusicController musicController;
+  @Inject
+  MediaController mediaController;
   @Inject AudioManager audioManager;
   @Inject WifiManager wifiManager;
   @Inject MediaService media;
@@ -90,7 +90,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     Timber.d("onCreate");
     SprocketApp.get(this).component().inject(this);
 
-    Playback playback = new LocalPlayback(getApplicationContext(), musicController, audioManager,
+    Playback playback = new LocalPlayback(getApplicationContext(), mediaController, audioManager,
         wifiManager, client);
     playbackManager = new PlaybackManager(queueManager, this, AndroidClock.DEFAULT, playback);
 
@@ -99,7 +99,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     try {
       MediaControllerCompat mediaController =
           new MediaControllerCompat(this.getApplicationContext(), session.getSessionToken());
-      musicController.setMediaController(mediaController);
+      this.mediaController.setMediaController(mediaController);
     } catch (RemoteException e) {
       Timber.e(e, "Could not create MediaController");
       throw new IllegalStateException();
@@ -113,7 +113,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     playbackManager.updatePlaybackState();
 
-    mediaNotificationManager = new MediaNotificationManager(this, musicController,
+    mediaNotificationManager = new MediaNotificationManager(this, mediaController,
         queueManager, rx);
 
     castSessionManager = CastContext.getSharedInstance(this).getSessionManager();
@@ -122,7 +122,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     mediaRouter = MediaRouter.getInstance(getApplicationContext());
 
-    timelineManager = new TimelineManager(musicController, queueManager, media, rx);
+    timelineManager = new TimelineManager(mediaController, queueManager, media, rx);
     timelineManager.start();
   }
 
@@ -217,8 +217,8 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
   private class CastSessionManagerListener implements SessionManagerListener<CastSession> {
     @Override public void onSessionEnded(CastSession castSession, int error) {
       Timber.d("onSessionEnded");
-      musicController.setCastName(null);
-      Playback playback = new LocalPlayback(getApplicationContext(), musicController, audioManager,
+      mediaController.setCastName(null);
+      Playback playback = new LocalPlayback(getApplicationContext(), mediaController, audioManager,
           wifiManager, client);
       mediaRouter.setMediaSessionCompat(null);
       playbackManager.switchToPlayback(playback, false);
@@ -229,7 +229,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override public void onSessionStarted(CastSession castSession, String sessionId) {
       Timber.d("onSessionStarted %s", sessionId);
-      musicController.setCastName(castSession.getCastDevice().getFriendlyName());
+      mediaController.setCastName(castSession.getCastDevice().getFriendlyName());
       Playback playback = new CastPlayback(MusicService.this);
       mediaRouter.setMediaSessionCompat(session);
       playbackManager.switchToPlayback(playback, true);

@@ -15,6 +15,7 @@
  */
 package com.awsomefox.sprocket.playback;
 
+import android.os.Bundle;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat.Token;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -22,9 +23,8 @@ import android.support.v4.media.session.PlaybackStateCompat.State;
 
 import androidx.annotation.Nullable;
 
-import com.jakewharton.rxrelay2.BehaviorRelay;
-
 import com.awsomefox.sprocket.util.Rx;
+import com.jakewharton.rxrelay2.BehaviorRelay;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
@@ -44,7 +44,7 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPIN
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED;
 
-public class MusicController {
+public class MediaController {
 
   private final BehaviorRelay<Long> progressRelay = BehaviorRelay.createDefault(0L);
   private final BehaviorRelay<Integer> stateRelay = BehaviorRelay.createDefault(STATE_NONE);
@@ -54,6 +54,7 @@ public class MusicController {
   private PlaybackStateCompat playbackState;
   private Disposable progressDisposable;
   private String castName;
+  private float speed = 1.0f;
 
   private final MediaControllerCompat.Callback callback = new MediaControllerCompat.Callback() {
     @Override public void onPlaybackStateChanged(PlaybackStateCompat newPlaybackState) {
@@ -72,7 +73,7 @@ public class MusicController {
     }
   };
 
-  public MusicController(Flowable<Long> seconds, Rx rx) {
+  public MediaController(Flowable<Long> seconds, Rx rx) {
     this.seconds = seconds;
     this.rx = rx;
   }
@@ -223,6 +224,19 @@ public class MusicController {
     }
   }
 
+  public float getSpeed() {
+    return speed;
+  }
+
+  public void setSpeed(float speed) {
+    this.speed = speed;
+    if (mediaController != null) {
+      Bundle newSpeed = new Bundle();
+      newSpeed.putFloat(PlaybackManager.BUNDLE_SPEED_KEY, speed);
+      mediaController.getTransportControls().sendCustomAction(PlaybackManager.CUSTOM_ACTION_SPEED, newSpeed);
+    }
+  }
+
   private void handleProgress(@State final int state, final long startPosition) {
     if (state == STATE_PLAYING) {
       stopProgress();
@@ -234,7 +248,7 @@ public class MusicController {
 
   private void startProgress(final long startPosition) {
     progressRelay.accept(startPosition);
-    progressDisposable = seconds.map(count -> ((count + 1) * 1000) + startPosition)
+    progressDisposable = seconds.map(count -> ((long) (speed * (count + 1) * 1000)) + startPosition)
         .subscribeOn(rx.newThread())
         .subscribe(progressRelay, Rx::onError);
   }

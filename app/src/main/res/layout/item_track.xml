@@ -1,42 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/ItemContainer"
     android:layout_width="match_parent"
     android:layout_height="@dimen/item_height">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start|center_vertical"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/track_title"
-            style="@style/ItemTitle"
+        <ImageView
+            android:id="@+id/no_listen_track"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:tint="@color/accent"
+            app:srcCompat="@drawable/no_listen" />
 
-        <RelativeLayout
+        <ImageView
+            android:id="@+id/partial_listen_track"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:tint="@color/accent"
+            android:visibility="gone"
+            app:srcCompat="@drawable/partial_listen" />
+
+        <ImageView
+            android:id="@+id/full_listen_track"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:tint="@color/accent"
+            android:visibility="gone"
+            app:srcCompat="@drawable/full_listen" />
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/track_subtitle"
-                style="@style/ItemSubTitle"
+                android:id="@+id/track_title"
+                style="@style/ItemTitle"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@+id/track_duration" />
+                android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/track_duration"
-                style="@style/ItemSubTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-        </RelativeLayout>
+                <TextView
+                    android:id="@+id/track_subtitle"
+                    style="@style/ItemSubTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/track_duration" />
 
+                <TextView
+                    android:id="@+id/track_duration"
+                    style="@style/ItemSubTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
     </LinearLayout>
 
 </FrameLayout>

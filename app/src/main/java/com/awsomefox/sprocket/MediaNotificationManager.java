@@ -38,19 +38,17 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 
+import com.awsomefox.sprocket.data.model.Track;
+import com.awsomefox.sprocket.playback.MediaController;
+import com.awsomefox.sprocket.playback.MusicService;
+import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.ui.SprocketActivity;
+import com.awsomefox.sprocket.util.Pair;
+import com.awsomefox.sprocket.util.Rx;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.awsomefox.sprocket.data.model.Track;
-import com.awsomefox.sprocket.playback.MusicController;
-import com.awsomefox.sprocket.playback.MusicService;
-import com.awsomefox.sprocket.playback.QueueManager;
-import com.awsomefox.sprocket.util.Pair;
-import com.awsomefox.sprocket.util.Rx;
-
-import com.awsomefox.sprocket.R;
 
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
@@ -72,7 +70,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
   private static final int REQUEST_CODE = 100;
 
   private final MusicService service;
-  private final MusicController musicController;
+  private final MediaController mediaController;
   private final QueueManager queueManager;
   private final Rx rx;
   private final NotificationManager notificationManager;
@@ -89,10 +87,10 @@ public class MediaNotificationManager extends BroadcastReceiver {
   private Disposable disposable;
   private boolean started;
 
-  public MediaNotificationManager(MusicService service, MusicController musicController,
+  public MediaNotificationManager(MusicService service, MediaController mediaController,
                                   QueueManager queueManager, Rx rx) {
     this.service = service;
-    this.musicController = musicController;
+    this.mediaController = mediaController;
     this.queueManager = queueManager;
     this.rx = rx;
 
@@ -153,7 +151,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
   private void observeSession() {
     Rx.dispose(disposable);
-    disposable = Flowable.combineLatest(queueManager.queue(), musicController.state(),
+    disposable = Flowable.combineLatest(queueManager.queue(), mediaController.state(),
         (pair, state) -> {
           boolean stopNotification = false; // higher priority if both are true
           boolean showNotification = false;
@@ -212,13 +210,13 @@ public class MediaNotificationManager extends BroadcastReceiver {
     switch (intent.getAction()) {
       case ACTION_PAUSE:
       case ACTION_PLAY:
-        musicController.playPause();
+        mediaController.playPause();
         break;
       case ACTION_NEXT:
-        musicController.next();
+        mediaController.next();
         break;
       case ACTION_PREVIOUS:
-        musicController.previous();
+        mediaController.previous();
         break;
       case ACTION_STOP_CAST:
         Intent stopCastIntent = new Intent(context, MusicService.class);
@@ -256,7 +254,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             .setShowActionsInCompactView(1) // show only play/pause in compact view
             .setShowCancelButton(true)
             .setCancelButtonIntent(stopCastIntent)
-            .setMediaSession(musicController.getSessionToken()))
+                .setMediaSession(mediaController.getSessionToken()))
         .setDeleteIntent(stopCastIntent)
         .setColor(notificationColor)
         .setSmallIcon(R.drawable.ic_notification)
@@ -266,7 +264,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         .setContentTitle(currentTrack.title())
         .setContentText(currentTrack.artistTitle());
 
-    String castName = musicController.getCastName();
+    String castName = mediaController.getCastName();
     if (castName != null) {
       String castInfo = service.getResources().getString(R.string.casting_to_device, castName);
       notificationBuilder.setSubText(castInfo);
@@ -300,7 +298,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
   }
 
   private void setNotificationPlaybackState(NotificationCompat.Builder builder) {
-    PlaybackStateCompat playbackState = musicController.getPlaybackState();
+    PlaybackStateCompat playbackState = mediaController.getPlaybackState();
     if (playbackState == null || !started) {
       service.stopForeground(true);
       return;

@@ -23,6 +23,7 @@ import android.support.v4.media.session.PlaybackStateCompat.State;
 
 import androidx.annotation.NonNull;
 
+import com.awsomefox.sprocket.data.model.Track;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaLoadOptions;
 import com.google.android.gms.cast.MediaMetadata;
@@ -34,8 +35,6 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.common.images.WebImage;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
-
-import com.awsomefox.sprocket.data.model.Track;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,7 +59,7 @@ class CastPlayback implements Playback {
   private Callback callback;
   @State private int state;
   private volatile int playerState;
-  private volatile int currentPosition;
+    private volatile long currentPosition;
   private volatile Track currentTrack;
 
   CastPlayback(Context context) {
@@ -138,7 +137,8 @@ class CastPlayback implements Playback {
     }
   }
 
-  @Override public int getCurrentStreamPosition() {
+    @Override
+    public long getCurrentStreamPosition() {
     if (!isConnected()) {
       return currentPosition;
     }
@@ -182,7 +182,8 @@ class CastPlayback implements Playback {
     }
   }
 
-  @Override public void seekTo(int position) {
+    @Override
+    public void seekTo(long position) {
     if (currentTrack == null) {
       state = PlaybackStateCompat.STATE_ERROR;
       if (callback != null) {
@@ -210,6 +211,16 @@ class CastPlayback implements Playback {
   @Override public Track getCurrentTrack() {
     return currentTrack;
   }
+
+    @Override
+    public void setSpeed(float speed) {
+        remoteMediaClient.setPlaybackRate(speed);
+    }
+
+    @Override
+    public float getSpeed() {
+        return 0.0f;
+    }
 
   @Override public void setCurrentTrack(Track track) {
     this.currentTrack = track;

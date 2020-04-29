@@ -17,17 +17,16 @@ package com.awsomefox.sprocket.data.model;
 
 import androidx.annotation.Nullable;
 
+import com.awsomefox.sprocket.data.HttpUrlTypeAdapter;
 import com.google.auto.value.AutoValue;
 import com.ryanharter.auto.value.parcel.ParcelAdapter;
-
-import com.awsomefox.sprocket.data.HttpUrlTypeAdapter;
 
 import okhttp3.HttpUrl;
 
 @AutoValue
-public abstract class Album implements PlexItem {
+public abstract class Book implements PlexItem {
   public static Builder builder() {
-    return new AutoValue_Album.Builder();
+      return new AutoValue_Book.Builder();
   }
 
   public abstract String title();
@@ -49,6 +48,7 @@ public abstract class Album implements PlexItem {
     public abstract Builder libraryId(String libraryId);
     public abstract Builder thumb(String thumb);
     public abstract Builder uri(HttpUrl uri);
-    public abstract Album build();
+
+      public abstract Book build();
   }
 }

@@ -17,12 +17,11 @@ package com.awsomefox.sprocket.data.model;
 
 import androidx.annotation.Nullable;
 
+import com.awsomefox.sprocket.data.HttpUrlTypeAdapter;
 import com.google.auto.value.AutoValue;
 import com.ryanharter.auto.value.parcel.ParcelAdapter;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
-
-import com.awsomefox.sprocket.data.HttpUrlTypeAdapter;
 
 import okhttp3.HttpUrl;
 
@@ -58,6 +57,10 @@ public abstract class Track implements PlexItem {
 
   public abstract long duration();
 
+    public abstract long viewOffset();
+
+    public abstract long viewCount();
+
   @Nullable public abstract String thumb();
 
   @ParcelAdapter(HttpUrlTypeAdapter.class) public abstract HttpUrl uri();
@@ -74,6 +77,10 @@ public abstract class Track implements PlexItem {
     public abstract Builder source(String source);
     public abstract Builder index(int index);
     public abstract Builder duration(long duration);
+
+      public abstract Builder viewOffset(long viewOffset);
+
+      public abstract Builder viewCount(long viewCount);
     public abstract Builder thumb(String thumb);
     public abstract Builder uri(HttpUrl uri);
     public abstract Track build();

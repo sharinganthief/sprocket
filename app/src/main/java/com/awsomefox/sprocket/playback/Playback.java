@@ -60,7 +60,7 @@ interface Playback {
   /**
    * @return position if currently playing an item
    */
-  int getCurrentStreamPosition();
+  long getCurrentStreamPosition();
 
   /**
    * Query the underlying stream and update the internal last known stream position.
@@ -80,12 +80,22 @@ interface Playback {
   /**
    * Seek to the given position
    */
-  void seekTo(int position);
+  void seekTo(long position);
 
   /**
    * @return the current track being processed in any state or null.
    */
   Track getCurrentTrack();
+
+    /**
+     * Set the current speed
+     */
+    void setSpeed(float speed);
+
+    /**
+     * Get the current speed
+     */
+    float getSpeed();
 
   /**
    * Set the current track. This is only used when switching from one playback to another.

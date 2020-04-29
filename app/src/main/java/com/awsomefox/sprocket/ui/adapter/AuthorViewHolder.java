@@ -21,35 +21,36 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.data.model.Author;
+import com.awsomefox.sprocket.util.Urls;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.awsomefox.sprocket.data.model.Artist;
-import com.awsomefox.sprocket.util.Urls;
-
-import com.awsomefox.sprocket.R;
 
 import butterknife.BindDimen;
 import butterknife.BindView;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-final class ArtistViewHolder extends ClickableViewHolder<Artist> {
+final class AuthorViewHolder extends ClickableViewHolder<Author> {
 
   @BindView(R.id.artist_thumb) ImageView thumb;
   @BindView(R.id.artist_title) TextView title;
   @BindDimen(R.dimen.item_height) int height;
 
-  ArtistViewHolder(View view, ViewHolderListener listener) {
+    AuthorViewHolder(View view, ViewHolderListener listener) {
     super(view, listener);
   }
 
-  @Override void bindModel(@NonNull Artist artist) {
+    @Override
+    void bindModel(@NonNull Author artist) {
     title.setText(artist.title());
 
     //noinspection SuspiciousNameCombination
     Glide.with(itemView.getContext())
         .load(Urls.addTranscodeParams(artist.thumb(), height, height))
         .apply(RequestOptions.circleCropTransform())
+            .placeholder(R.drawable.author_missing)
         .transition(withCrossFade())
         .into(thumb);
   }

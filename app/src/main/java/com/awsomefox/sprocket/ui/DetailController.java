@@ -31,23 +31,22 @@ import androidx.core.widget.ContentLoadingProgressBar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bluelinelabs.conductor.Router;
-import com.bluelinelabs.conductor.RouterTransaction;
-import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.SprocketApp;
 import com.awsomefox.sprocket.data.Key;
-import com.awsomefox.sprocket.data.model.Album;
-import com.awsomefox.sprocket.data.model.Artist;
+import com.awsomefox.sprocket.data.model.Author;
+import com.awsomefox.sprocket.data.model.Book;
 import com.awsomefox.sprocket.data.model.PlexItem;
 import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.data.repository.MusicRepository;
-import com.awsomefox.sprocket.playback.MusicController;
+import com.awsomefox.sprocket.playback.MediaController;
 import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.ui.adapter.MusicAdapter;
 import com.awsomefox.sprocket.ui.widget.DividerItemDecoration;
 import com.awsomefox.sprocket.util.Rx;
-
-import com.awsomefox.sprocket.SprocketApp;
-import com.awsomefox.sprocket.R;
+import com.bluelinelabs.conductor.Router;
+import com.bluelinelabs.conductor.RouterTransaction;
+import com.google.android.gms.cast.framework.CastButtonFactory;
 
 import javax.inject.Inject;
 
@@ -71,7 +70,7 @@ public class DetailController extends BaseController implements
   @Inject
   QueueManager queueManager;
   @Inject
-  MusicController musicController;
+  MediaController mediaController;
   @Inject
   Rx rx;
   private PlexItem plexItem;
@@ -106,10 +105,10 @@ public class DetailController extends BaseController implements
       setHasOptionsMenu(true);
       actionBar.setDisplayHomeAsUpEnabled(true);
       actionBar.setDisplayShowTitleEnabled(true);
-      if (plexItem instanceof Artist) {
-        actionBar.setTitle(((Artist) plexItem).title());
-      } else if (plexItem instanceof Album) {
-        actionBar.setTitle(((Album) plexItem).title());
+        if (plexItem instanceof Author) {
+            actionBar.setTitle(((Author) plexItem).title());
+        } else if (plexItem instanceof Book) {
+            actionBar.setTitle(((Book) plexItem).title());
       }
     }
 
@@ -126,10 +125,10 @@ public class DetailController extends BaseController implements
     super.onAttach(view);
     recyclerView.setAdapter(adapter);
     if (!itemsLoaded) {
-      if (plexItem instanceof Artist) {
-        getArtistItems((Artist) plexItem);
-      } else if (plexItem instanceof Album) {
-        getAlbumItems((Album) plexItem);
+        if (plexItem instanceof Author) {
+            getAuthorItems((Author) plexItem);
+        } else if (plexItem instanceof Book) {
+            getBookItems((Book) plexItem);
       }
     }
     observePlayback();
@@ -149,7 +148,7 @@ public class DetailController extends BaseController implements
   }
 
   @Override public void onPlexItemClicked(PlexItem plexItem) {
-    if (plexItem instanceof Album) {
+      if (plexItem instanceof Book) {
       goToDetails(plexItem);
     } else if (plexItem instanceof Track) {
       playTrack((Track) plexItem);
@@ -160,7 +159,7 @@ public class DetailController extends BaseController implements
     getRouter().pushController(RouterTransaction.with(new PlayerController(null)));
   }
 
-  private void getArtistItems(Artist artist) {
+    private void getAuthorItems(Author artist) {
     disposables.add(musicRepository.artistItems(artist)
         .compose(bindUntilEvent(DETACH))
         .compose(rx.singleSchedulers())
@@ -170,7 +169,7 @@ public class DetailController extends BaseController implements
         }, Rx::onError));
   }
 
-  private void getAlbumItems(Album album) {
+    private void getBookItems(Book album) {
     disposables.add(musicRepository.albumItems(album)
         .compose(bindUntilEvent(DETACH))
         .compose(rx.singleSchedulers())
@@ -181,7 +180,7 @@ public class DetailController extends BaseController implements
   }
 
   private void observePlayback() {
-    disposables.add(musicController.state()
+      disposables.add(mediaController.state()
         .compose(bindUntilEvent(DETACH))
         .compose(rx.flowableSchedulers())
         .subscribe(state -> {
@@ -215,7 +214,7 @@ public class DetailController extends BaseController implements
         .compose(rx.singleSchedulers())
         .subscribe(pair -> {
           queueManager.setQueue(pair.first, pair.second);
-          musicController.play();
+            mediaController.play();
         }, Rx::onError));
   }
 }

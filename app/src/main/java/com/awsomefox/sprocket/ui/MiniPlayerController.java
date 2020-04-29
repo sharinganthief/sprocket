@@ -24,12 +24,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.SprocketApp;
 import com.awsomefox.sprocket.data.model.Track;
-import com.awsomefox.sprocket.playback.MusicController;
+import com.awsomefox.sprocket.playback.MediaController;
 import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.util.Rx;
-import com.awsomefox.sprocket.SprocketApp;
-import com.awsomefox.sprocket.R;
 
 import javax.inject.Inject;
 
@@ -50,7 +50,7 @@ public class MiniPlayerController extends BaseController {
   @BindString(R.string.description_play) String descPlay;
   @BindString(R.string.description_pause) String descPause;
   @Inject
-  MusicController musicController;
+  MediaController mediaController;
   @Inject
   QueueManager queueManager;
   @Inject
@@ -76,11 +76,11 @@ public class MiniPlayerController extends BaseController {
   }
 
   @OnClick(R.id.miniplayer_play_pause) void onClickPlayPause() {
-    musicController.playPause();
+      mediaController.playPause();
   }
 
   private void observePlaybackState() {
-    disposables.add(musicController.state()
+      disposables.add(mediaController.state()
         .compose(bindUntilEvent(DETACH))
         .compose(rx.flowableSchedulers())
         .subscribe(this::updatePlayButton, Rx::onError));

@@ -26,6 +26,8 @@ import android.net.wifi.WifiManager;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v4.media.session.PlaybackStateCompat.State;
 
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.data.model.Track;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -39,9 +41,6 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-
-import com.awsomefox.sprocket.R;
-import com.awsomefox.sprocket.data.model.Track;
 
 import okhttp3.Call;
 import timber.log.Timber;
@@ -68,7 +67,7 @@ class LocalPlayback implements Playback, Player.EventListener,
   private final Context context;
   private final WifiManager.WifiLock wifiLock;
   private final AudioManager audioManager;
-  private final MusicController musicController;
+  private final MediaController mediaController;
   private final ProgressiveMediaSource.Factory mediaSourceFactory;
   private SimpleExoPlayer exoPlayer;
   private Callback callback;
@@ -83,16 +82,16 @@ class LocalPlayback implements Playback, Player.EventListener,
     @Override public void onReceive(Context context, Intent intent) {
       if (ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
         if (isPlaying()) {
-          musicController.pause();
+          mediaController.pause();
         }
       }
     }
   };
 
-  LocalPlayback(Context context, MusicController musicController, AudioManager audioManager,
+  LocalPlayback(Context context, MediaController mediaController, AudioManager audioManager,
                 WifiManager wifiManager, Call.Factory callFactory) {
     this.context = context;
-    this.musicController = musicController;
+    this.mediaController = mediaController;
     this.audioManager = audioManager;
     this.wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "klingar");
     String agent = Util.getUserAgent(context, context.getResources().getString(R.string.app_name));
@@ -151,7 +150,8 @@ class LocalPlayback implements Playback, Player.EventListener,
     return playOnFocusGain || (exoPlayer != null && exoPlayer.getPlayWhenReady());
   }
 
-  @Override public int getCurrentStreamPosition() {
+  @Override
+  public long getCurrentStreamPosition() {
     return exoPlayer != null ? (int) exoPlayer.getCurrentPosition() : 0;
   }
 
@@ -184,7 +184,12 @@ class LocalPlayback implements Playback, Player.EventListener,
 
       Uri uri = Uri.parse(track.source());
       ProgressiveMediaSource source = mediaSourceFactory.createMediaSource(uri);
-      exoPlayer.prepare(source);
+      boolean hasPlexStart = track.viewOffset() != 0;
+
+      if (hasPlexStart) {
+        exoPlayer.seekTo(Math.min(Math.max(0, track.viewOffset()), track.duration()));
+      }
+      exoPlayer.prepare(source, !hasPlexStart, !hasPlexStart);
 
       // If we are streaming from the internet, we want to hold a Wifi lock, which prevents the
       // Wifi radio from going to sleep while the song is playing.
@@ -206,7 +211,8 @@ class LocalPlayback implements Playback, Player.EventListener,
     unregisterAudioNoisyReceiver();
   }
 
-  @Override public void seekTo(int position) {
+  @Override
+  public void seekTo(long position) {
     Timber.d("seekTo %s", position);
     if (exoPlayer != null) {
       registerAudioNoisyReceiver();
@@ -218,6 +224,22 @@ class LocalPlayback implements Playback, Player.EventListener,
 
   @Override public Track getCurrentTrack() {
     return currentTrack;
+  }
+
+  @Override
+  public void setSpeed(float speed) {
+    PlaybackParameters param = new PlaybackParameters(speed);
+    exoPlayer.setPlaybackParameters(param);
+//    mediaController.get
+    exoPlayer.setPlaybackParameters(param);
+  }
+
+  @Override
+  public float getSpeed() {
+    if (exoPlayer == null || exoPlayer.getPlaybackParameters() == null) {
+      return 1.0f;
+    }
+    return exoPlayer.getPlaybackParameters().speed;
   }
 
   @Override public void setCurrentTrack(Track track) {

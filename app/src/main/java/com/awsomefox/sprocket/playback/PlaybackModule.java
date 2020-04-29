@@ -22,8 +22,10 @@ public class PlaybackModule {
     return new Random();
   }
 
-  @Provides @Singleton MusicController provideMusicController(Flowable<Long> seconds, Rx rx) {
-    return new MusicController(seconds, rx);
+    @Provides
+    @Singleton
+    MediaController provideMusicController(Flowable<Long> seconds, Rx rx) {
+        return new MediaController(seconds, rx);
   }
 
   @Provides @Singleton QueueManager provideQueueManager(Random random) {

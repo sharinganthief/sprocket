@@ -81,12 +81,12 @@ public class MediaService {
         .build());
   }
 
-  public Observable<MediaContainer> recentArtists(HttpUrl url, String libKey) {
+  public Observable<MediaContainer> recentAuthors(HttpUrl url, String libKey) {
     return api.get(url.newBuilder()
         .addPathSegments("library/sections")
         .addPathSegment(libKey)
-        .addPathSegment("all")
-        .query("viewCount>=1&type=8&sort=lastViewedAt:desc")
+            .addPathSegment("search")
+            .query("viewOffset>=10&type=10&sort=updatedAt:desc")
         .addQueryParameter(TOKEN, url.queryParameter(TOKEN))
         .build());
   }
@@ -117,12 +117,33 @@ public class MediaService {
   public Single<MediaContainer> playQueue(HttpUrl url, String trackKey, String trackParentKey,
                                           String libraryId) {
     return api.post(url.newBuilder()
-        .addPathSegments("playQueues")
-        .query("repeat=0&shuffle=0&type=audio&continuous=0")
-        .addQueryParameter("key", trackKey)
-        .addQueryParameter("uri", "library://" + libraryId + "/item/" + trackParentKey)
-        .addQueryParameter(TOKEN, url.queryParameter(TOKEN))
-        .build());
+            .addPathSegments("playQueues")
+            .query("repeat=0&shuffle=0&type=audio&continuous=0")
+            .addQueryParameter("key", trackKey)
+            .addQueryParameter("uri", "library://" + libraryId + "/item/" + trackParentKey)
+            .addQueryParameter(TOKEN, url.queryParameter(TOKEN))
+            .build());
+  }
+
+  public Completable scrobble(HttpUrl url, String ratingKey) {
+    return api.get(url.newBuilder()
+            .addPathSegments(":/scrobble")
+            .query("identifier=com.plexapp.plugins.library")
+            .addQueryParameter("key", ratingKey)
+            .addQueryParameter(TOKEN, url.queryParameter(TOKEN))
+            .build())
+            .ignoreElements();
+  }
+
+  //todo add way to do dis
+  public Completable unScrobble(HttpUrl url, String ratingKey) {
+    return api.get(url.newBuilder()
+            .addPathSegments(":/unscrobble")
+            .query("identifier=com.plexapp.plugins.library")
+            .addQueryParameter("key", ratingKey)
+            .addQueryParameter(TOKEN, url.queryParameter(TOKEN))
+            .build())
+            .ignoreElements();
   }
 
   interface Api {
