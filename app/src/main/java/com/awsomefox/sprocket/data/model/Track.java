@@ -27,62 +27,88 @@ import okhttp3.HttpUrl;
 
 @AutoValue
 public abstract class Track implements PlexItem {
-  public static Builder builder() {
-    return new AutoValue_Track.Builder();
-  }
+    public static Builder builder() {
+        return new AutoValue_Track.Builder();
+    }
 
-  public static JsonAdapter<Track> jsonAdapter(Moshi moshi) {
-    return new AutoValue_Track.MoshiJsonAdapter(moshi);
-  }
+    public static Builder builder(Track track) {
+        return new AutoValue_Track.Builder();
+    }
 
-  public abstract long queueItemId();
+    public static JsonAdapter<Track> jsonAdapter(Moshi moshi) {
+        return new AutoValue_Track.MoshiJsonAdapter(moshi);
+    }
 
-  public abstract String libraryId();
+    public abstract long queueItemId();
 
-  public abstract String key();
+    public abstract String libraryId();
 
-  public abstract String ratingKey();
+    public abstract String key();
 
-  public abstract String parentKey();
+    public abstract String ratingKey();
 
-  public abstract String title();
+    public abstract String parentKey();
 
-  public abstract String albumTitle();
+    public abstract String title();
 
-  public abstract String artistTitle();
+    public abstract String albumTitle();
 
-  public abstract String source();
+    public abstract String artistTitle();
 
-  public abstract int index();
+    public abstract String source();
 
-  public abstract long duration();
+    public abstract int index();
+
+    public abstract long duration();
 
     public abstract long viewOffset();
 
     public abstract long viewCount();
 
-  @Nullable public abstract String thumb();
+    public abstract boolean recent();
 
-  @ParcelAdapter(HttpUrlTypeAdapter.class) public abstract HttpUrl uri();
+    @Nullable
+    public abstract String thumb();
 
-  @AutoValue.Builder public abstract static class Builder {
-    public abstract Builder queueItemId(long queueItemId);
-    public abstract Builder libraryId(String libraryId);
-    public abstract Builder key(String key);
-    public abstract Builder ratingKey(String ratingKey);
-    public abstract Builder parentKey(String parentKey);
-    public abstract Builder title(String name);
-    public abstract Builder artistTitle(String artistTitle);
-    public abstract Builder albumTitle(String albumTitle);
-    public abstract Builder source(String source);
-    public abstract Builder index(int index);
-    public abstract Builder duration(long duration);
+    @ParcelAdapter(HttpUrlTypeAdapter.class)
+    public abstract HttpUrl uri();
 
-      public abstract Builder viewOffset(long viewOffset);
+    @AutoValue.Builder
+    public abstract static class Builder {
+        public abstract Builder queueItemId(long queueItemId);
 
-      public abstract Builder viewCount(long viewCount);
-    public abstract Builder thumb(String thumb);
-    public abstract Builder uri(HttpUrl uri);
-    public abstract Track build();
-  }
+        public abstract Builder libraryId(String libraryId);
+
+        public abstract Builder key(String key);
+
+        public abstract Builder ratingKey(String ratingKey);
+
+        public abstract Builder parentKey(String parentKey);
+
+        public abstract Builder title(String name);
+
+        public abstract Builder artistTitle(String artistTitle);
+
+        public abstract Builder albumTitle(String albumTitle);
+
+        public abstract Builder source(String source);
+
+        public abstract Builder index(int index);
+
+        public abstract Builder duration(long duration);
+
+        public abstract Builder viewOffset(long viewOffset);
+
+        public abstract Builder viewCount(long viewCount);
+
+        public abstract Builder thumb(String thumb);
+
+        public abstract Builder uri(HttpUrl uri);
+
+        public abstract Builder recent(boolean recent);
+
+        public abstract Track build();
+    }
+
+    public abstract Builder toBuilder();
 }

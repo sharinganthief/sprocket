@@ -43,7 +43,6 @@ import com.awsomefox.sprocket.playback.MediaController;
 import com.awsomefox.sprocket.playback.MusicService;
 import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.ui.SprocketActivity;
-import com.awsomefox.sprocket.util.Pair;
 import com.awsomefox.sprocket.util.Rx;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -60,295 +59,277 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED
 
 public class MediaNotificationManager extends BroadcastReceiver {
 
-  private static final String ACTION_PLAY = "com.awsomefox.sprocket.ACTION_PLAY";
-  private static final String ACTION_PAUSE = "com.awsomefox.sprocket.ACTION_PAUSE";
-  private static final String ACTION_NEXT = "com.awsomefox.sprocket.ACTION_NEXT";
-  private static final String ACTION_PREVIOUS = "com.awsomefox.sprocket.ACTION_PREVIOUS";
-  private static final String ACTION_STOP_CAST = "com.awsomefox.sprocket.ACTION_STOP_CAST";
-  private static final String CHANNEL_ID = "com.awsomefox.sprocket.CHANNEL_ID";
-  private static final int NOTIFICATION_ID = 412;
-  private static final int REQUEST_CODE = 100;
+    private static final String ACTION_PLAY = "com.awsomefox.sprocket.ACTION_PLAY";
+    private static final String ACTION_PAUSE = "com.awsomefox.sprocket.ACTION_PAUSE";
+    private static final String ACTION_SKIP_FORWARD = "com.awsomefox.sprocket.ACTION_SKIP_FORWARD";
+    private static final String ACTION_SKIP_BACK = "com.awsomefox.sprocket.SKIP_BACK";
+    private static final String ACTION_STOP_CAST = "com.awsomefox.sprocket.ACTION_STOP_CAST";
+    private static final String CHANNEL_ID = "com.awsomefox.sprocket.CHANNEL_ID";
+    private static final int NOTIFICATION_ID = 412;
+    private static final int REQUEST_CODE = 100;
 
-  private final MusicService service;
-  private final MediaController mediaController;
-  private final QueueManager queueManager;
-  private final Rx rx;
-  private final NotificationManager notificationManager;
-  private final PendingIntent playIntent;
-  private final PendingIntent pauseIntent;
-  private final PendingIntent nextIntent;
-  private final PendingIntent previousIntent;
-  private final PendingIntent stopCastIntent;
-  private final int notificationColor;
-  private final int iconWidth;
-  private final int iconHeight;
-  @State private int state;
-  private Track currentTrack;
-  private Disposable disposable;
-  private boolean started;
+    private final MusicService musicService;
+    private final MediaController mediaController;
+    private final QueueManager queueManager;
+    private final Rx rx;
+    private final NotificationManager notificationManager;
+    private final PendingIntent playIntent;
+    private final PendingIntent pauseIntent;
+    private final PendingIntent nextIntent;
+    private final PendingIntent previousIntent;
+    private final PendingIntent stopCastIntent;
+    private final int iconWidth;
+    private final int iconHeight;
+    @State
+    private int state;
+    private Track currentTrack;
+    private Disposable disposable;
+    private Notification notification;
 
-  public MediaNotificationManager(MusicService service, MediaController mediaController,
-                                  QueueManager queueManager, Rx rx) {
-    this.service = service;
-    this.mediaController = mediaController;
-    this.queueManager = queueManager;
-    this.rx = rx;
+    public MediaNotificationManager(MusicService service, MediaController mediaController,
+                                    QueueManager queueManager, Rx rx) {
+        this.musicService = service;
+        this.mediaController = mediaController;
+        this.queueManager = queueManager;
+        this.rx = rx;
 
-    notificationColor = ContextCompat.getColor(service, R.color.primary);
-    notificationManager = (NotificationManager) service.getSystemService(
-        Context.NOTIFICATION_SERVICE);
+        notificationManager = (NotificationManager) service.getSystemService(
+                Context.NOTIFICATION_SERVICE);
 
-    String p = service.getPackageName();
-    playIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
-        new Intent(ACTION_PLAY).setPackage(p), FLAG_CANCEL_CURRENT);
-    pauseIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
-        new Intent(ACTION_PAUSE).setPackage(p), FLAG_CANCEL_CURRENT);
-    nextIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
-        new Intent(ACTION_NEXT).setPackage(p), FLAG_CANCEL_CURRENT);
-    previousIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
-        new Intent(ACTION_PREVIOUS).setPackage(p), FLAG_CANCEL_CURRENT);
-    stopCastIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
-        new Intent(ACTION_STOP_CAST).setPackage(p), FLAG_CANCEL_CURRENT);
+        String p = service.getPackageName();
+        playIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
+                new Intent(ACTION_PLAY).setPackage(p), FLAG_CANCEL_CURRENT);
+        pauseIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
+                new Intent(ACTION_PAUSE).setPackage(p), FLAG_CANCEL_CURRENT);
+        nextIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
+                new Intent(ACTION_SKIP_FORWARD).setPackage(p), FLAG_CANCEL_CURRENT);
+        previousIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
+                new Intent(ACTION_SKIP_BACK).setPackage(p), FLAG_CANCEL_CURRENT);
+        stopCastIntent = PendingIntent.getBroadcast(service, REQUEST_CODE,
+                new Intent(ACTION_STOP_CAST).setPackage(p), FLAG_CANCEL_CURRENT);
 
-    iconWidth = service.getResources().getDimensionPixelSize(
-        android.R.dimen.notification_large_icon_width);
-    iconHeight = service.getResources().getDimensionPixelSize(
-        android.R.dimen.notification_large_icon_height);
+        iconWidth = service.getResources().getDimensionPixelSize(
+                android.R.dimen.notification_large_icon_width);
+        iconHeight = service.getResources().getDimensionPixelSize(
+                android.R.dimen.notification_large_icon_height);
 
-    // Cancel all notifications to handle the case where the Service was killed and
-    // restarted by the system.
-    if (notificationManager != null) {
-      notificationManager.cancelAll();
+        // Cancel all notifications to handle the case where the Service was killed and
+        // restarted by the system.
+        if (notificationManager != null) {
+            notificationManager.cancelAll();
+        }
     }
-  }
 
-  /**
-   * Posts the notification and starts tracking the session to keep it
-   * updated. The notification will automatically be removed if the session is
-   * destroyed before {@link #stopNotification} is called.
-   */
-  public void startNotification() {
-    Timber.d("startNotification started %s", started);
-    if (!started) {
-      currentTrack = queueManager.currentTrack();
-
-      // The notification must be updated after setting started to true
-      Notification notification = createNotification();
-      if (notification != null) {
-        observeSession();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_NEXT);
-        filter.addAction(ACTION_PAUSE);
-        filter.addAction(ACTION_PLAY);
-        filter.addAction(ACTION_PREVIOUS);
-        filter.addAction(ACTION_STOP_CAST);
-        service.registerReceiver(this, filter);
-        service.startForeground(NOTIFICATION_ID, notification);
-        started = true;
-      }
+    /**
+     * Posts the notification and starts tracking the session to keep it
+     * updated. The notification will automatically be removed if the session is
+     * destroyed before {@link #stopNotification} is called.
+     */
+    public void startNotification() {
+        currentTrack = queueManager.currentTrack();
+        updateNotification();
+        if (notification != null) {
+            observeSession();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ACTION_SKIP_FORWARD);
+            filter.addAction(ACTION_PAUSE);
+            filter.addAction(ACTION_PLAY);
+            filter.addAction(ACTION_SKIP_BACK);
+            filter.addAction(ACTION_STOP_CAST);
+            musicService.registerReceiver(this, filter);
+            musicService.startForeground(NOTIFICATION_ID, notification);
+            notificationManager.notify(NOTIFICATION_ID, notification);
+        }
     }
-  }
 
-  private void observeSession() {
-    Rx.dispose(disposable);
-    disposable = Flowable.combineLatest(queueManager.queue(), mediaController.state(),
-        (pair, state) -> {
-          boolean stopNotification = false; // higher priority if both are true
-          boolean showNotification = false;
+    private void observeSession() {
+        Rx.dispose(disposable);
+        disposable = Flowable.combineLatest(queueManager.queue(), mediaController.state(), mediaController.progress(),
+                (pair, state, prog) -> {
+                    boolean stopNotification = false;
 
-          Track track = pair.first.get(pair.second);
-          if (!track.equals(currentTrack)) {
-            currentTrack = track;
-            showNotification = true;
-          }
+                    Track track = pair.first.get(pair.second);
+                    if (!track.equals(currentTrack)) {
+                        currentTrack = track;
+                    }
 
-          boolean stateChanged = MediaNotificationManager.this.state != state;
-          MediaNotificationManager.this.state = state;
-          if (state == STATE_STOPPED || state == STATE_NONE) {
-            stopNotification = true;
-          } else if (stateChanged) {
-            showNotification = true;
-          }
+                    MediaNotificationManager.this.state = state;
+                    if (state == STATE_STOPPED || state == STATE_NONE) {
+                        stopNotification = true;
+                    }
 
-          return new Pair<>(stopNotification, showNotification);
-        })
-        .compose(rx.flowableSchedulers())
-        .subscribe(pair -> {
-          if (pair.first) {
-            stopNotification();
-          } else if (pair.second) {
-            Notification notification = createNotification();
-            if (notification != null) {
-              notificationManager.notify(NOTIFICATION_ID, notification);
+                    return stopNotification;
+                })
+                .compose(rx.flowableSchedulers())
+                .subscribe(shouldStop -> {
+                    if (shouldStop) {
+                        stopNotification();
+                    } else {
+                        updateNotification();
+                    }
+                }, Rx::onError);
+    }
+
+    /**
+     * Removes the notification and stops tracking the session. If the session
+     * was destroyed this has no effect.
+     */
+    public void stopNotification() {
+        if (notification != null) {
+            Rx.dispose(disposable);
+            try {
+                notificationManager.cancel(NOTIFICATION_ID);
+                musicService.unregisterReceiver(this);
+            } catch (IllegalArgumentException ignored) {
+                // ignore if the receiver is not registered.
             }
-          }
-        }, Rx::onError);
-  }
-
-  /**
-   * Removes the notification and stops tracking the session. If the session
-   * was destroyed this has no effect.
-   */
-  public void stopNotification() {
-    if (started) {
-      started = false;
-      Rx.dispose(disposable);
-      try {
-        notificationManager.cancel(NOTIFICATION_ID);
-        service.unregisterReceiver(this);
-      } catch (IllegalArgumentException ignored) {
-        // ignore if the receiver is not registered.
-      }
-      service.stopForeground(true);
-    }
-  }
-
-  @Override public void onReceive(Context context, Intent intent) {
-    if (intent.getAction() == null) {
-      return;
-    }
-    switch (intent.getAction()) {
-      case ACTION_PAUSE:
-      case ACTION_PLAY:
-        mediaController.playPause();
-        break;
-      case ACTION_NEXT:
-        mediaController.next();
-        break;
-      case ACTION_PREVIOUS:
-        mediaController.previous();
-        break;
-      case ACTION_STOP_CAST:
-        Intent stopCastIntent = new Intent(context, MusicService.class);
-        stopCastIntent.setAction(MusicService.ACTION_STOP_CASTING);
-        ContextCompat.startForegroundService(service, stopCastIntent);
-        break;
-      default:
-    }
-  }
-
-  private Notification createNotification() {
-    Timber.d("createNotification currentTrack %s", currentTrack);
-    if (currentTrack == null) {
-      return null;
+            musicService.stopForeground(true);
+            notification = null;
+        }
     }
 
-    // Notification channels are only supported on Android O+.
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      createNotificationChannel();
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction() == null) {
+            return;
+        }
+        switch (intent.getAction()) {
+            case ACTION_PAUSE:
+            case ACTION_PLAY:
+                mediaController.playPause();
+                break;
+            case ACTION_SKIP_FORWARD:
+                mediaController.skipForward();
+                break;
+            case ACTION_SKIP_BACK:
+                mediaController.skipBack();
+                break;
+            case ACTION_STOP_CAST:
+                Intent stopCastIntent = new Intent(context, MusicService.class);
+                stopCastIntent.setAction(MusicService.ACTION_STOP_CASTING);
+                ContextCompat.startForegroundService(musicService, stopCastIntent);
+                break;
+            default:
+        }
     }
 
-    NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(service,
-        CHANNEL_ID);
+    private Notification createNotification() {
+        Timber.d("createNotification currentTrack %s", currentTrack);
+        if (currentTrack == null) {
+            return null;
+        }
 
-    notificationBuilder.addAction(R.drawable.ic_notification_previous,
-        service.getString(R.string.label_previous), previousIntent);
+        // Notification channels are only supported on Android O+.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel();
+        }
 
-    addPlayPauseAction(notificationBuilder);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(musicService,
+                CHANNEL_ID);
 
-    notificationBuilder.addAction(R.drawable.ic_notification_next,
-        service.getString(R.string.label_next), nextIntent);
+        notificationBuilder.addAction(R.drawable.skip_back,
+                musicService.getString(R.string.description_skip_back), previousIntent);
 
-    notificationBuilder
-        .setStyle(new MediaStyle()
-            .setShowActionsInCompactView(1) // show only play/pause in compact view
-            .setShowCancelButton(true)
-            .setCancelButtonIntent(stopCastIntent)
-                .setMediaSession(mediaController.getSessionToken()))
-        .setDeleteIntent(stopCastIntent)
-        .setColor(notificationColor)
-        .setSmallIcon(R.drawable.ic_notification)
-        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-        .setOnlyAlertOnce(true)
-        .setContentIntent(createContentIntent())
-        .setContentTitle(currentTrack.title())
-        .setContentText(currentTrack.artistTitle());
+        addPlayPauseAction(notificationBuilder);
 
-    String castName = mediaController.getCastName();
-    if (castName != null) {
-      String castInfo = service.getResources().getString(R.string.casting_to_device, castName);
-      notificationBuilder.setSubText(castInfo);
-      notificationBuilder.addAction(R.drawable.ic_notification_close,
-          service.getString(R.string.stop_casting), stopCastIntent);
+        notificationBuilder.addAction(R.drawable.skip_forward,
+                musicService.getString(R.string.description_skip_forward), nextIntent);
+
+        notificationBuilder
+                .setStyle(new MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2) // show only play/pause in compact view
+                        .setMediaSession(mediaController.getSessionToken()))
+                .setDeleteIntent(stopCastIntent)
+                .setSmallIcon(R.drawable.sprocket_logo)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setOnlyAlertOnce(true)
+                .setContentIntent(createContentIntent())
+                .setContentTitle(currentTrack.title())
+                .setContentText(currentTrack.artistTitle());
+
+        String castName = mediaController.getCastName();
+        if (castName != null) {
+            String castInfo = musicService.getResources().getString(R.string.casting_to_device, castName);
+            notificationBuilder.setSubText(castInfo);
+            notificationBuilder.addAction(R.drawable.ic_notification_close,
+                    musicService.getString(R.string.stop_casting), stopCastIntent);
+        }
+
+        setNotificationPlaybackState(notificationBuilder);
+
+        if (currentTrack.thumb() != null) {
+            loadImage(currentTrack.thumb(), notificationBuilder);
+        }
+
+        return notificationBuilder.build();
     }
 
-    setNotificationPlaybackState(notificationBuilder);
-
-    if (currentTrack.thumb() != null) {
-      loadImage(currentTrack.thumb(), notificationBuilder);
+    private void updateNotification() {
+        notification = createNotification();
+        if (notification != null) {
+            notificationManager.notify(NOTIFICATION_ID, notification);
+        }
     }
 
-    return notificationBuilder.build();
-  }
-
-  private void addPlayPauseAction(NotificationCompat.Builder builder) {
-    if (state == PlaybackStateCompat.STATE_PLAYING) {
-      builder.addAction(new NotificationCompat.Action(R.drawable.ic_notification_pause,
-          service.getString(R.string.label_pause), pauseIntent));
-    } else {
-      builder.addAction(new NotificationCompat.Action(R.drawable.ic_notification_play,
-          service.getString(R.string.label_play), playIntent));
+    private void addPlayPauseAction(NotificationCompat.Builder builder) {
+        if (state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_BUFFERING) {
+            builder.addAction(new NotificationCompat.Action(R.drawable.ic_notification_pause,
+                    musicService.getString(R.string.label_pause), pauseIntent));
+        } else {
+            builder.addAction(new NotificationCompat.Action(R.drawable.ic_notification_play,
+                    musicService.getString(R.string.label_play), playIntent));
+        }
     }
-  }
 
-  private PendingIntent createContentIntent() {
-    Intent intent = new Intent(service, SprocketActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    return PendingIntent.getActivity(service, REQUEST_CODE, intent, FLAG_CANCEL_CURRENT);
-  }
-
-  private void setNotificationPlaybackState(NotificationCompat.Builder builder) {
-    PlaybackStateCompat playbackState = mediaController.getPlaybackState();
-    if (playbackState == null || !started) {
-      service.stopForeground(true);
-      return;
+    private PendingIntent createContentIntent() {
+        Intent intent = new Intent(musicService, SprocketActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return PendingIntent.getActivity(musicService, REQUEST_CODE, intent, FLAG_CANCEL_CURRENT);
     }
-    if (playbackState.getState() == PlaybackStateCompat.STATE_PLAYING
-        && playbackState.getPosition() >= 0) {
-      builder.setWhen(System.currentTimeMillis() - playbackState.getPosition())
-          .setShowWhen(true)
-          .setUsesChronometer(true);
-    } else {
-      builder.setWhen(0)
-          .setShowWhen(false)
-          .setUsesChronometer(false);
+
+    private void setNotificationPlaybackState(NotificationCompat.Builder builder) {
+        PlaybackStateCompat playbackState = mediaController.getPlaybackState();
+        if (playbackState == null) {
+            musicService.stopForeground(false);
+            return;
+        }
+        // Make sure that the notification can be dismissed by the user when we are not playing:
+        builder.setOngoing(playbackState.getState() == PlaybackStateCompat.STATE_PLAYING);
     }
-    // Make sure that the notification can be dismissed by the user when we are not playing:
-    builder.setOngoing(playbackState.getState() == PlaybackStateCompat.STATE_PLAYING);
-  }
 
-  private void loadImage(final String url, final NotificationCompat.Builder builder) {
-    Glide.with(service)
-        .asBitmap()
-        .load(url)
-        .apply(RequestOptions.overrideOf(iconWidth, iconHeight))
-        .into(new CustomTarget<Bitmap>() {
-          @Override
-          public void onResourceReady(
-              @NonNull Bitmap resource,
-              Transition<? super Bitmap> transition
-          ) {
-            if (TextUtils.equals(currentTrack.thumb(), url)) {
-              builder.setLargeIcon(resource);
-              notificationManager.notify(NOTIFICATION_ID, builder.build());
-            }
-          }
+    private void loadImage(final String url, final NotificationCompat.Builder builder) {
+        Glide.with(musicService)
+                .asBitmap()
+                .load(url)
+                .apply(RequestOptions.overrideOf(iconWidth, iconHeight))
+                .into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(
+                            @NonNull Bitmap resource,
+                            Transition<? super Bitmap> transition
+                    ) {
+                        if (TextUtils.equals(currentTrack.thumb(), url)) {
+                            builder.setLargeIcon(resource);
+                            notificationManager.notify(NOTIFICATION_ID, builder.build());
+                        }
+                    }
 
-          @Override public void onLoadCleared(@Nullable Drawable placeholder) {
-          }
-        });
-  }
-
-  /**
-   * Creates Notification Channel. This is required in Android O+ to display notifications.
-   */
-  @RequiresApi(Build.VERSION_CODES.O)
-  private void createNotificationChannel() {
-    if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
-      NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-          service.getString(R.string.notification_channel), NotificationManager.IMPORTANCE_LOW);
-      channel.setDescription(service.getString(R.string.notification_channel_description));
-      notificationManager.createNotificationChannel(channel);
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+                    }
+                });
     }
-  }
+
+    /**
+     * Creates Notification Channel. This is required in Android O+ to display notifications.
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void createNotificationChannel() {
+        if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                    musicService.getString(R.string.notification_channel), NotificationManager.IMPORTANCE_LOW);
+            channel.setDescription(musicService.getString(R.string.notification_channel_description));
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
 }

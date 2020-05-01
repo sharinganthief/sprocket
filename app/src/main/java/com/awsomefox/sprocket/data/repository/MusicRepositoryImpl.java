@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.functions.Function;
@@ -66,35 +67,42 @@ class MusicRepositoryImpl implements MusicRepository {
   }
 
   @Override public Single<List<PlexItem>> browseLibrary(Library lib) {
-    return Observable.concat(mediaTypes(lib), recentlyPlayed(lib)).toList();
+    return Observable.concat(mediaTypes(lib), chaptersInProgress(lib), booksRecentlyListendTo(lib)).toList();
   }
 
   private Observable<PlexItem> mediaTypes(Library lib) {
-    return Observable.fromArray(new MediaType[]{
-        MediaType.builder()
-                .title("Authors")
-            .type(Type.ARTIST)
-            .mediaKey("8")
-            .libraryKey(lib.key())
-            .libraryId(lib.uuid())
-            .uri(lib.uri())
-            .build(),
-        MediaType.builder()
-                .title("Books")
-            .type(Type.ALBUM)
-            .mediaKey("9")
-            .libraryKey(lib.key())
-            .libraryId(lib.uuid())
-            .uri(lib.uri())
-            .build()
-    });
+    return Observable.fromArray(Header.builder().title("Browse Library").build(),
+            MediaType.builder()
+                    .title("Authors")
+                    .type(Type.ARTIST)
+                    .mediaKey("8")
+                    .libraryKey(lib.key())
+                    .libraryId(lib.uuid())
+                    .uri(lib.uri())
+                    .build(),
+            MediaType.builder()
+                    .title("Books")
+                    .type(Type.ALBUM)
+                    .mediaKey("9")
+                    .libraryKey(lib.key())
+                    .libraryId(lib.uuid())
+                    .uri(lib.uri())
+                    .build());
   }
 
-  private Observable<PlexItem> recentlyPlayed(Library lib) {
-      return media.recentAuthors(lib.uri(), lib.key())
-              .flatMap(TRACKS)
-              .map(trackMapper(lib.key(), lib.uri()))
-        .startWith(Header.builder().title("Recently played").build());
+  private Observable<PlexItem> chaptersInProgress(Library lib) {
+    return media.chaptersInProgress(lib.uri(), lib.key())
+            .flatMap(TRACKS)
+            .map(trackMapper(lib.key(), lib.uri(), true))
+            .startWith(Header.builder().title("Chapters In Progress").build());
+
+  }
+
+  private Observable<PlexItem> booksRecentlyListendTo(Library lib) {
+    return media.booksRecentlyListendTo(lib.uri(), lib.key())
+            .flatMap(DIRS)
+            .map(albumMapper(lib.key(), lib.uri()))
+            .startWith(Header.builder().title("Books In Progress").build());
   }
 
   @Override public Single<List<PlexItem>> browseMediaType(MediaType mt, int offset) {
@@ -140,7 +148,7 @@ class MusicRepositoryImpl implements MusicRepository {
   private Single<List<PlexItem>> browseTracks(MediaType mt, int offset) {
     return media.browse(mt.uri(), mt.libraryKey(), mt.mediaKey(), offset)
         .flatMap(TRACKS)
-        .map(trackMapper(mt.libraryId(), mt.uri()))
+            .map(trackMapper(mt.libraryId(), mt.uri(), false))
         .toList();
   }
 
@@ -180,7 +188,7 @@ class MusicRepositoryImpl implements MusicRepository {
     private Single<List<PlexItem>> popularTracks(Author artist) {
     return media.popularTracks(artist.uri(), artist.libraryKey(), artist.ratingKey())
         .flatMap(TRACKS)
-        .map(trackMapper(artist.libraryId(), artist.uri()))
+            .map(trackMapper(artist.libraryId(), artist.uri(), false))
         .toList();
   }
 
@@ -195,7 +203,7 @@ class MusicRepositoryImpl implements MusicRepository {
     public Single<List<PlexItem>> albumItems(Book album) {
     return media.tracks(album.uri(), album.ratingKey())
         .flatMap(TRACKS)
-        .map(trackMapper(album.libraryId(), album.uri()))
+            .map(trackMapper(album.libraryId(), album.uri(), false))
         .toList();
   }
 
@@ -203,10 +211,20 @@ class MusicRepositoryImpl implements MusicRepository {
     return media.playQueue(track.uri(), track.key(), track.parentKey(), track.libraryId())
         .flatMap(container -> Observable.just(container)
             .flatMap(TRACKS)
-            .map(trackMapper(track.libraryId(), track.uri()))
+                .map(trackMapper(track.libraryId(), track.uri(), false))
             .map(plexItem -> (Track) plexItem)
             .toList()
             .map(tracks -> new Pair<>(tracks, container.playQueueSelectedItemID)));
+  }
+
+  @Override
+  public Completable scrobble(HttpUrl url, String ratingKey) {
+    return media.scrobble(url, ratingKey);
+  }
+
+  @Override
+  public Completable unscrobble(HttpUrl url, String ratingKey) {
+    return media.unScrobble(url, ratingKey);
   }
 
   @NonNull private Function<Directory, PlexItem> albumMapper(String libraryId, HttpUrl uri) {
@@ -233,7 +251,8 @@ class MusicRepositoryImpl implements MusicRepository {
         .build();
   }
 
-  @NonNull private Function<Song, PlexItem> trackMapper(String libraryId, HttpUrl uri) {
+  @NonNull
+  private Function<Song, PlexItem> trackMapper(String libraryId, HttpUrl uri, boolean recent) {
     return track -> Track.builder()
         .queueItemId(track.playQueueItemID != null ? track.playQueueItemID : 0)
         .libraryId(libraryId)
@@ -250,6 +269,7 @@ class MusicRepositoryImpl implements MusicRepository {
         .thumb(Strings.isBlank(track.thumb) ? null : Urls.addPathToUrl(uri, track.thumb).toString())
         .source(Urls.addPathToUrl(uri, track.media.part.key).toString())
         .uri(uri)
+            .recent(recent)
         .build();
   }
 }

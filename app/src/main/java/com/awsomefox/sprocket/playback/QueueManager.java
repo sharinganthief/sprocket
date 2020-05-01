@@ -15,73 +15,48 @@
  */
 package com.awsomefox.sprocket.playback;
 
-import androidx.annotation.IntDef;
-
+import com.awsomefox.sprocket.data.model.Track;
+import com.awsomefox.sprocket.util.Pair;
 import com.jakewharton.rxrelay2.BehaviorRelay;
 
-import com.awsomefox.sprocket.data.model.Track;
-import com.awsomefox.sprocket.data.model.TrackComparator;
-import com.awsomefox.sprocket.util.Pair;
-
-import java.lang.annotation.Retention;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
-import static java.lang.annotation.RetentionPolicy.SOURCE;
-
 public class QueueManager {
 
-  public static final int SHUFFLE_OFF = 1;
-  public static final int SHUFFLE_ALL = 2;
-  public static final int REPEAT_OFF = 3;
-  public static final int REPEAT_ALL = 4;
-  public static final int REPEAT_ONE = 5;
-
-  private final BehaviorRelay<Pair<Integer, Integer>> modeRelay =
-      BehaviorRelay.createDefault(new Pair<>(SHUFFLE_OFF, REPEAT_OFF));
   private final BehaviorRelay<Pair<List<Track>, Integer>> queueRelay =
       BehaviorRelay.createDefault(new Pair<>(Collections.emptyList(), 0));
-  private final Random random;
-
-  @ShuffleMode private int shuffleMode = SHUFFLE_OFF;
-  @RepeatMode private int repeatMode = REPEAT_OFF;
   private List<Track> queue = Collections.emptyList();
   private int position;
+  private float speed = 1.0f;
 
-  public QueueManager(Random random) {
-    this.random = random;
+  public QueueManager() {
   }
 
-  public Flowable<Pair<Integer, Integer>> mode() {
-    return modeRelay.toFlowable(BackpressureStrategy.LATEST);
+  public float getSpeed() {
+    return speed;
+  }
+
+  public void setSpeed(float speed) {
+    this.speed = speed;
   }
 
   public Flowable<Pair<List<Track>, Integer>> queue() {
     return queueRelay.toFlowable(BackpressureStrategy.LATEST);
   }
 
-  @ShuffleMode int getShuffleMode() {
-    return shuffleMode;
-  }
-
-  @RepeatMode int getRepeatMode() {
-    return repeatMode;
-  }
-
-  public void setQueue(List<Track> queue, long queueItemId) {
+  public void setQueue(List<Track> queue, long queueItemId, long currentOffest) {
     this.queue = queue;
     setQueuePosition(queueItemId);
-    notifyQueue();
-
-    if (shuffleMode != SHUFFLE_OFF) {
-      shuffleMode = SHUFFLE_OFF;
-      notifyMode();
+    //set the persisted offset
+    if (currentOffest != 0L && queue.get(position).viewOffset() != 0L) {
+      queue.set(position, queue.get(position).toBuilder().viewOffset(currentOffest).build());
     }
+    notifyQueue();
   }
 
   public Track currentTrack() {
@@ -92,7 +67,7 @@ public class QueueManager {
     if (queue.contains(currentTrack)) {
       setQueuePosition(currentTrack.queueItemId());
     } else {
-      setQueue(Collections.singletonList(currentTrack), currentTrack.queueItemId());
+      setQueue(Collections.singletonList(currentTrack), currentTrack.queueItemId(), 0L);
     }
   }
 
@@ -105,18 +80,11 @@ public class QueueManager {
   }
 
   void next() {
-    if (repeatMode == REPEAT_ONE) {
-      return;
-    }
 
     int newPosition = position;
 
     if ((newPosition + 1) >= queue.size()) {
-      if (repeatMode == REPEAT_ALL) {
-        newPosition = 0;
-      } else {
         newPosition = Math.max(0, queue.size() - 1);
-      }
     } else {
       ++newPosition;
     }
@@ -126,18 +94,11 @@ public class QueueManager {
   }
 
   void previous() {
-    if (repeatMode == REPEAT_ONE) {
-      return;
-    }
 
     int newPosition = position;
 
     if ((newPosition - 1) < 0) {
-      if (repeatMode == REPEAT_ALL) {
-        newPosition = Math.max(0, queue.size() - 1);
-      } else {
         newPosition = 0;
-      }
     } else {
       --newPosition;
     }
@@ -146,31 +107,8 @@ public class QueueManager {
     notifyQueue();
   }
 
-  void shuffle() {
-    if (shuffleMode == SHUFFLE_OFF) {
-      shuffleQueue();
-      shuffleMode = SHUFFLE_ALL;
-    } else {
-      sortQueue();
-      shuffleMode = SHUFFLE_OFF;
-    }
-    notifyQueue();
-    notifyMode();
-  }
-
-  void repeat() {
-    if (repeatMode == REPEAT_OFF) {
-      repeatMode = REPEAT_ALL;
-    } else if (repeatMode == REPEAT_ALL) {
-      repeatMode = REPEAT_ONE;
-    } else {
-      repeatMode = REPEAT_OFF;
-    }
-    notifyMode();
-  }
-
   boolean hasNext() {
-    return (position + 1) < queue.size() || repeatMode == REPEAT_ONE || repeatMode == REPEAT_ALL;
+    return (position + 1) < queue.size();
   }
 
   private int getPositionFromQueueItem(long id) {
@@ -182,31 +120,7 @@ public class QueueManager {
     return 0;
   }
 
-  private void sortQueue() {
-    Track currentTrack = queue.get(position);
-    Collections.sort(queue, new TrackComparator());
-    position = Math.max(0, queue.indexOf(currentTrack));
-  }
-
-  private void shuffleQueue() {
-    Track currentTrack = queue.get(position);
-    Collections.shuffle(queue, random);
-    position = Math.max(0, queue.indexOf(currentTrack));
-  }
-
   private void notifyQueue() {
     queueRelay.accept(new Pair<>(new ArrayList<>(queue), position));
   }
-
-  private void notifyMode() {
-    modeRelay.accept(new Pair<>(shuffleMode, repeatMode));
-  }
-
-  @Retention(SOURCE)
-  @IntDef({SHUFFLE_OFF, SHUFFLE_ALL})
-  public @interface ShuffleMode { }
-
-  @Retention(SOURCE)
-  @IntDef({REPEAT_OFF, REPEAT_ALL, REPEAT_ONE})
-  public @interface RepeatMode { }
 }

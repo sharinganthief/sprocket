@@ -68,7 +68,7 @@ public class SprocketActivity extends AppCompatActivity {
       Timber.d("onCreate");
     super.onCreate(savedInstanceState);
     SprocketApp.get(this).component().inject(this);
-    setContentView(R.layout.activity_klingar);
+    setContentView(R.layout.activity_sprocket);
     ButterKnife.bind(this);
 
     router = Conductor.attachRouter(this, container, savedInstanceState);

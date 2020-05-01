@@ -46,214 +46,220 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED
 
 public class MediaController {
 
-  private final BehaviorRelay<Long> progressRelay = BehaviorRelay.createDefault(0L);
-  private final BehaviorRelay<Integer> stateRelay = BehaviorRelay.createDefault(STATE_NONE);
-  private final Flowable<Long> seconds;
-  private final Rx rx;
-  private MediaControllerCompat mediaController;
-  private PlaybackStateCompat playbackState;
-  private Disposable progressDisposable;
-  private String castName;
-  private float speed = 1.0f;
+    private final BehaviorRelay<Long> progressRelay = BehaviorRelay.createDefault(0L);
+    private final BehaviorRelay<Integer> stateRelay = BehaviorRelay.createDefault(STATE_NONE);
+    private final Flowable<Long> seconds;
+    private final Rx rx;
+    private MediaControllerCompat mediaController;
+    private PlaybackStateCompat playbackState;
+    private Disposable progressDisposable;
+    private String castName;
+    private float speed = 1.0f;
 
-  private final MediaControllerCompat.Callback callback = new MediaControllerCompat.Callback() {
-    @Override public void onPlaybackStateChanged(PlaybackStateCompat newPlaybackState) {
-      super.onPlaybackStateChanged(newPlaybackState);
+    private final MediaControllerCompat.Callback callback = new MediaControllerCompat.Callback() {
+        @Override
+        public void onPlaybackStateChanged(PlaybackStateCompat newPlaybackState) {
+            super.onPlaybackStateChanged(newPlaybackState);
 
-      @State int newState = newPlaybackState.getState();
-      @State int currentState = stateRelay.getValue() != null ? stateRelay.getValue() : STATE_NONE;
+            @State int newState = newPlaybackState.getState();
+            @State int currentState = stateRelay.getValue() != null ? stateRelay.getValue() : STATE_NONE;
+            Timber.d("just progress ");
+            if (newState != currentState) {
+                stateRelay.accept(newState);
+                handleProgress(newState, newPlaybackState.getPosition());
+            }
+            playbackState = newPlaybackState;
 
-      if (newState != currentState) {
-        stateRelay.accept(newState);
-        handleProgress(newState, newPlaybackState.getPosition());
-      }
-      playbackState = newPlaybackState;
+            Timber.d("onPlaybackStateChanged %s", getStateString(newState));
+        }
+    };
 
-      Timber.d("onPlaybackStateChanged %s", getStateString(newState));
+    public MediaController(Flowable<Long> seconds, Rx rx) {
+        this.seconds = seconds;
+        this.rx = rx;
     }
-  };
 
-  public MediaController(Flowable<Long> seconds, Rx rx) {
-    this.seconds = seconds;
-    this.rx = rx;
-  }
-
-  private static String getStateString(@State int state) {
-    switch (state) {
-      case STATE_NONE:
-        return "STATE_NONE";
-      case STATE_STOPPED:
-        return "STATE_STOPPED";
-      case STATE_PLAYING:
-        return "STATE_PLAYING";
-      case STATE_PAUSED:
-        return "STATE_PAUSED";
-      case STATE_FAST_FORWARDING:
-        return "STATE_FAST_FORWARDING";
-      case STATE_REWINDING:
-        return "STATE_REWINDING";
-      case STATE_BUFFERING:
-        return "STATE_BUFFERING";
-      case STATE_ERROR:
-        return "STATE_ERROR";
-      case STATE_CONNECTING:
-        return "STATE_CONNECTING";
-      case STATE_SKIPPING_TO_PREVIOUS:
-        return "STATE_SKIPPING_TO_PREVIOUS";
-      case STATE_SKIPPING_TO_NEXT:
-        return "STATE_SKIPPING_TO_NEXT";
-      case STATE_SKIPPING_TO_QUEUE_ITEM:
-        return "STATE_SKIPPING_TO_QUEUE_ITEM";
-      default:
-        return "UNKNOWN";
+    private static String getStateString(@State int state) {
+        switch (state) {
+            case STATE_NONE:
+                return "STATE_NONE";
+            case STATE_STOPPED:
+                return "STATE_STOPPED";
+            case STATE_PLAYING:
+                return "STATE_PLAYING";
+            case STATE_PAUSED:
+                return "STATE_PAUSED";
+            case STATE_FAST_FORWARDING:
+                return "STATE_FAST_FORWARDING";
+            case STATE_REWINDING:
+                return "STATE_REWINDING";
+            case STATE_BUFFERING:
+                return "STATE_BUFFERING";
+            case STATE_ERROR:
+                return "STATE_ERROR";
+            case STATE_CONNECTING:
+                return "STATE_CONNECTING";
+            case STATE_SKIPPING_TO_PREVIOUS:
+                return "STATE_SKIPPING_TO_PREVIOUS";
+            case STATE_SKIPPING_TO_NEXT:
+                return "STATE_SKIPPING_TO_NEXT";
+            case STATE_SKIPPING_TO_QUEUE_ITEM:
+                return "STATE_SKIPPING_TO_QUEUE_ITEM";
+            default:
+                return "UNKNOWN";
+        }
     }
-  }
 
-  @Nullable public Token getSessionToken() {
-    return mediaController != null ? mediaController.getSessionToken() : null;
-  }
-
-  /**
-   * Set a new MediaController with the current session token
-   */
-  void setMediaController(MediaControllerCompat newMediaController) {
-    if (mediaController != null) {
-      mediaController.unregisterCallback(callback);
-      mediaController = null;
+    @Nullable
+    public Token getSessionToken() {
+        return mediaController != null ? mediaController.getSessionToken() : null;
     }
-    mediaController = newMediaController;
-    mediaController.registerCallback(callback);
-  }
 
-  public PlaybackStateCompat getPlaybackState() {
-    return playbackState;
-  }
-
-  @Nullable public String getCastName() {
-    return castName;
-  }
-
-  void setCastName(@Nullable String castName) {
-    this.castName = castName;
-  }
-
-  public Flowable<Long> progress() {
-    return progressRelay.toFlowable(BackpressureStrategy.LATEST);
-  }
-
-  public Flowable<Integer> state() {
-    return stateRelay.toFlowable(BackpressureStrategy.LATEST);
-  }
-
-  public void play() {
-    if (mediaController != null) {
-      mediaController.getTransportControls().play();
+    /**
+     * Set a new MediaController with the current session token
+     */
+    void setMediaController(MediaControllerCompat newMediaController) {
+        if (mediaController != null) {
+            mediaController.unregisterCallback(callback);
+            mediaController = null;
+        }
+        mediaController = newMediaController;
+        mediaController.registerCallback(callback);
     }
-  }
 
-  public void pause() {
-    if (mediaController != null) {
-      mediaController.getTransportControls().pause();
+    public PlaybackStateCompat getPlaybackState() {
+        return playbackState;
     }
-  }
 
-  public void stop() {
-    if (mediaController != null) {
-      mediaController.getTransportControls().stop();
+    @Nullable
+    public String getCastName() {
+        return castName;
     }
-  }
 
-  public void playPause() {
-    PlaybackStateCompat state = mediaController.getPlaybackState();
-    if (state != null) {
-      switch (state.getState()) {
-        case STATE_PLAYING:
-        case STATE_BUFFERING:
-          pause();
-          break;
-        case STATE_PAUSED:
-        case STATE_STOPPED:
-          play();
-          break;
-        case STATE_CONNECTING:
-        case STATE_ERROR:
-        case STATE_FAST_FORWARDING:
-        case STATE_NONE:
-        case STATE_REWINDING:
-        case STATE_SKIPPING_TO_NEXT:
-        case STATE_SKIPPING_TO_PREVIOUS:
-        case STATE_SKIPPING_TO_QUEUE_ITEM:
-        default:
-      }
+    void setCastName(@Nullable String castName) {
+        this.castName = castName;
     }
-  }
 
-  public void playQueueItem(long id) {
-    if (mediaController != null) {
-      mediaController.getTransportControls().skipToQueueItem(id);
+    public Flowable<Long> progress() {
+        return progressRelay.toFlowable(BackpressureStrategy.LATEST);
     }
-  }
 
-  public void seekTo(long milliseconds) {
-    if (mediaController != null) {
-      mediaController.getTransportControls().seekTo(milliseconds);
+    public Flowable<Integer> state() {
+        return stateRelay.toFlowable(BackpressureStrategy.LATEST);
     }
-  }
 
-  public void next() {
-    if (mediaController != null) {
-      mediaController.getTransportControls().skipToNext();
+    public void play() {
+        if (mediaController != null) {
+            mediaController.getTransportControls().play();
+        }
     }
-  }
 
-  public void previous() {
-    if (mediaController != null) {
-      mediaController.getTransportControls().skipToPrevious();
+    public void pause() {
+        if (mediaController != null) {
+            mediaController.getTransportControls().pause();
+        }
     }
-  }
 
-  public void shuffle() {
-    if (mediaController != null) {
-      mediaController.getTransportControls().sendCustomAction(PlaybackManager.CUSTOM_ACTION_SHUFFLE, null);
+    public void stop() {
+        if (mediaController != null) {
+            mediaController.getTransportControls().stop();
+        }
     }
-  }
 
-  public void repeat() {
-    if (mediaController != null) {
-      mediaController.getTransportControls().sendCustomAction(PlaybackManager.CUSTOM_ACTION_REPEAT, null);
+    public void playPause() {
+        PlaybackStateCompat state = mediaController.getPlaybackState();
+        if (state != null) {
+            switch (state.getState()) {
+                case STATE_PLAYING:
+                case STATE_BUFFERING:
+                    pause();
+                    break;
+                case STATE_PAUSED:
+                case STATE_STOPPED:
+                case STATE_NONE:
+                    play();
+                    break;
+                case STATE_CONNECTING:
+                case STATE_ERROR:
+                case STATE_FAST_FORWARDING:
+                case STATE_REWINDING:
+                case STATE_SKIPPING_TO_NEXT:
+                case STATE_SKIPPING_TO_PREVIOUS:
+                case STATE_SKIPPING_TO_QUEUE_ITEM:
+                default:
+            }
+        }
     }
-  }
 
-  public float getSpeed() {
-    return speed;
-  }
-
-  public void setSpeed(float speed) {
-    this.speed = speed;
-    if (mediaController != null) {
-      Bundle newSpeed = new Bundle();
-      newSpeed.putFloat(PlaybackManager.BUNDLE_SPEED_KEY, speed);
-      mediaController.getTransportControls().sendCustomAction(PlaybackManager.CUSTOM_ACTION_SPEED, newSpeed);
+    public void playQueueItem(long id) {
+        if (mediaController != null) {
+            mediaController.getTransportControls().skipToQueueItem(id);
+        }
     }
-  }
 
-  private void handleProgress(@State final int state, final long startPosition) {
-    if (state == STATE_PLAYING) {
-      stopProgress();
-      startProgress(startPosition);
-    } else {
-      stopProgress();
+    public void seekTo(long milliseconds) {
+        if (mediaController != null) {
+            mediaController.getTransportControls().seekTo(milliseconds);
+        }
     }
-  }
 
-  private void startProgress(final long startPosition) {
-    progressRelay.accept(startPosition);
-    progressDisposable = seconds.map(count -> ((long) (speed * (count + 1) * 1000)) + startPosition)
-        .subscribeOn(rx.newThread())
-        .subscribe(progressRelay, Rx::onError);
-  }
+    public void next() {
+        if (mediaController != null) {
+            mediaController.getTransportControls().skipToNext();
+        }
+    }
 
-  private void stopProgress() {
-    Rx.dispose(progressDisposable);
-  }
+    public void previous() {
+        if (mediaController != null) {
+            mediaController.getTransportControls().skipToPrevious();
+        }
+    }
+
+    public void skipBack() {
+        if (mediaController != null) {
+            seekTo(mediaController.getPlaybackState().getPosition() - 30000);
+        }
+    }
+
+    public void skipForward() {
+        if (mediaController != null) {
+            seekTo(mediaController.getPlaybackState().getPosition() + 30000);
+        }
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public void updatePlaySpeed() {
+        if (mediaController != null) {
+            Bundle newSpeed = new Bundle();
+            newSpeed.putFloat(PlaybackManager.BUNDLE_SPEED_KEY, speed);
+            mediaController.getTransportControls().sendCustomAction(PlaybackManager.CUSTOM_ACTION_SPEED, newSpeed);
+        }
+    }
+
+    private void handleProgress(@State final int state, final long startPosition) {
+        if (state == STATE_PLAYING) {
+            stopProgress();
+            startProgress(startPosition);
+        } else {
+            stopProgress();
+        }
+    }
+
+    private void startProgress(final long startPosition) {
+        progressRelay.accept(startPosition);
+        progressDisposable = seconds.map(count -> ((long) (speed * (count + 1) * 1000)) + startPosition)
+                .subscribeOn(rx.newThread())
+                .subscribe(progressRelay, Rx::onError);
+    }
+
+    private void stopProgress() {
+        Rx.dispose(progressDisposable);
+    }
 }

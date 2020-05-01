@@ -17,6 +17,7 @@ package com.awsomefox.sprocket.ui.adapter;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,11 +51,13 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
       return new AuthorViewHolder(inflater.inflate(R.layout.item_artist, parent, false), this);
     } else if (viewType == Type.ALBUM) {
       return new BookViewHolder(inflater.inflate(R.layout.item_album, parent, false), this);
+    } else if (viewType == Type.RECENT) {
+      return new RecentViewHolder(inflater.inflate(R.layout.item_track_recent, parent, false), this);
     } else if (viewType == Type.TRACK) {
       return new TrackViewHolder(inflater.inflate(R.layout.item_track, parent, false), this);
     } else if (viewType == Type.MEDIA_TYPE) {
       return new MediaTypeViewHolder(inflater.inflate(R.layout.item_media_type, parent, false),
-          this);
+              this);
     } else {
       return new HeaderViewHolder(inflater.inflate(R.layout.item_header, parent, false));
     }
@@ -68,6 +71,9 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         break;
       case Type.ALBUM:
         ((BookViewHolder) holder).bindModel((Book) item);
+        break;
+      case Type.RECENT:
+        ((RecentViewHolder) holder).bindModel((Track) item);
         break;
       case Type.TRACK:
         ((TrackViewHolder) holder).bindModel((Track) item);
@@ -93,7 +99,11 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     } else if (item instanceof Book) {
       return Type.ALBUM;
     } else if (item instanceof Track) {
-      return Type.TRACK;
+      if (((Track) item).recent()) {
+        return Type.RECENT;
+      } else {
+        return Type.TRACK;
+      }
     } else if (item instanceof MediaType) {
       return Type.MEDIA_TYPE;
     } else {
@@ -103,6 +113,16 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
   @Override public void onClick(int position) {
     listener.onPlexItemClicked(items.get(position));
+  }
+
+  @Override
+  public void onMarkFinished(int position, ImageView iv) {
+    listener.onPlexItemMarkFinished(items.get(position), iv);
+  }
+
+  @Override
+  public void onMarkUnstarted(int position, ImageView iv) {
+    listener.onPlexItemMarkUnstarted(items.get(position), iv);
   }
 
   public void addAll(List<PlexItem> items) {
@@ -115,7 +135,16 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     notifyDataSetChanged();
   }
 
+  public void clear() {
+    this.items.clear();
+    notifyDataSetChanged();
+  }
+
   public interface OnPlexItemClickListener {
     void onPlexItemClicked(PlexItem plexItem);
+
+    void onPlexItemMarkFinished(PlexItem plexItem, ImageView iv);
+
+    void onPlexItemMarkUnstarted(PlexItem plexItem, ImageView iv);
   }
 }

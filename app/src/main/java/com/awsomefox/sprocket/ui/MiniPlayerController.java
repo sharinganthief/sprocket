@@ -27,9 +27,10 @@ import androidx.annotation.NonNull;
 import com.awsomefox.sprocket.R;
 import com.awsomefox.sprocket.SprocketApp;
 import com.awsomefox.sprocket.data.model.Track;
-import com.awsomefox.sprocket.playback.MediaController;
-import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.util.Rx;
+import com.bumptech.glide.Glide;
+
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -38,72 +39,90 @@ import butterknife.BindView;
 import butterknife.OnClick;
 
 import static com.bluelinelabs.conductor.rxlifecycle2.ControllerEvent.DETACH;
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class MiniPlayerController extends BaseController {
+public class MiniPlayerController extends BaseMediaController {
 
-  private static final int[] PLAY = {-R.attr.state_pause};
-  private static final int[] PAUSE = {R.attr.state_pause};
+    private static final int[] PLAY = {-R.attr.state_pause};
+    private static final int[] PAUSE = {R.attr.state_pause};
 
-  @BindView(R.id.miniplayer_track_title) TextView trackTitle;
-  @BindView(R.id.miniplayer_artist_title) TextView artistTitle;
-  @BindView(R.id.miniplayer_play_pause) ImageView playPauseButton;
-  @BindString(R.string.description_play) String descPlay;
-  @BindString(R.string.description_pause) String descPause;
-  @Inject
-  MediaController mediaController;
-  @Inject
-  QueueManager queueManager;
-  @Inject
-  Rx rx;
+    @BindView(R.id.miniplayer_track_title)
+    TextView trackTitle;
+    @BindView(R.id.miniplayer_book_title)
+    TextView bookTitle;
+    @BindView(R.id.miniplayer_play_pause)
+    ImageView playPauseButton;
+    @BindView(R.id.album_thumb)
+    ImageView albumThumb;
+    @BindString(R.string.description_play)
+    String descPlay;
+    @BindString(R.string.description_pause)
+    String descPause;
+    @BindString(R.string.chapter_title)
+    String chapter_title;
+    @Inject
+    Rx rx;
 
-  public MiniPlayerController(Bundle args) {
-    super(args);
-  }
-
-  @Override protected int getLayoutResource() {
-    return R.layout.controller_miniplayer;
-  }
-
-  @Override protected void injectDependencies() {
-    if (getActivity() != null) {
-      SprocketApp.get(getActivity()).component().inject(this);
+    public MiniPlayerController(Bundle args) {
+        super(args);
     }
-  }
 
-  @Override protected void onAttach(@NonNull View view) {
-    super.onAttach(view);
-    observePlaybackState();
-  }
-
-  @OnClick(R.id.miniplayer_play_pause) void onClickPlayPause() {
-      mediaController.playPause();
-  }
-
-  private void observePlaybackState() {
-      disposables.add(mediaController.state()
-        .compose(bindUntilEvent(DETACH))
-        .compose(rx.flowableSchedulers())
-        .subscribe(this::updatePlayButton, Rx::onError));
-    disposables.add(queueManager.queue()
-        .compose(bindUntilEvent(DETACH))
-        .compose(rx.flowableSchedulers())
-        .subscribe(pair -> updateTrackInfo(pair.first.get(pair.second)), Rx::onError));
-  }
-
-  private void updatePlayButton(@State int state) {
-    if (state == PlaybackStateCompat.STATE_PLAYING
-        || state == PlaybackStateCompat.STATE_BUFFERING) {
-      playPauseButton.setImageState(PAUSE, true);
-      playPauseButton.setContentDescription(descPause);
-    } else {
-      playPauseButton.setImageState(PLAY, true);
-      playPauseButton.setContentDescription(descPlay);
+    @Override
+    protected int getLayoutResource() {
+        return R.layout.controller_miniplayer;
     }
-  }
 
-  private void updateTrackInfo(@NonNull Track track) {
-    trackTitle.setText(track.title());
-    artistTitle.setText(" \u2022 ");
-    artistTitle.append(track.artistTitle());
-  }
+    @Override
+    protected void injectDependencies() {
+        if (getActivity() != null) {
+            SprocketApp.get(getActivity()).component().inject(this);
+        }
+    }
+
+    @Override
+    protected void onAttach(@NonNull View view) {
+        super.onAttach(view);
+        observePlaybackState();
+    }
+
+    @OnClick(R.id.miniplayer_play_pause)
+    void onClickPlayPause() {
+        mediaController.playPause();
+    }
+
+    private void observePlaybackState() {
+        disposables.add(mediaController.progress()
+                .compose(bindUntilEvent(DETACH))
+                .compose(rx.flowableSchedulers())
+                .subscribe(this::persistProgress, Rx::onError));
+        disposables.add(mediaController.state()
+                .compose(bindUntilEvent(DETACH))
+                .compose(rx.flowableSchedulers())
+                .subscribe(this::updatePlayButton, Rx::onError));
+        disposables.add(queueManager.queue()
+                .compose(bindUntilEvent(DETACH))
+                .compose(rx.flowableSchedulers())
+                .subscribe(pair -> updateTrackInfo(pair.first.get(pair.second)), Rx::onError));
+    }
+
+    private void updatePlayButton(@State int state) {
+        if (state == PlaybackStateCompat.STATE_PLAYING
+                || state == PlaybackStateCompat.STATE_BUFFERING) {
+            playPauseButton.setImageState(PAUSE, true);
+            playPauseButton.setContentDescription(descPause);
+        } else {
+            playPauseButton.setImageState(PLAY, true);
+            playPauseButton.setContentDescription(descPlay);
+        }
+    }
+
+    private void updateTrackInfo(@NonNull Track track) {
+        trackTitle.setText(String.format(chapter_title, track.index()));
+        bookTitle.setText(track.albumTitle());
+        Glide.with(Objects.requireNonNull(getActivity()))
+                .load(track.thumb())
+                .transition(withCrossFade())
+                .into(albumThumb);
+        persistCurrentTrack(track);
+    }
 }

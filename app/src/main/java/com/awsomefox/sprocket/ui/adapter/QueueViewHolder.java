@@ -21,25 +21,31 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.awsomefox.sprocket.R;
 import com.awsomefox.sprocket.data.model.Track;
 
-import com.awsomefox.sprocket.R;
-
+import butterknife.BindString;
 import butterknife.BindView;
 
 class QueueViewHolder extends ClickableViewHolder<Track> {
 
-  @BindView(R.id.track_title) TextView title;
-  @BindView(R.id.track_subtitle) TextView subtitle;
-  @BindView(R.id.track_duration) TextView duration;
+    @BindView(R.id.track_title)
+    TextView title;
+    @BindView(R.id.track_subtitle)
+    TextView subtitle;
+    @BindView(R.id.track_duration)
+    TextView duration;
+    @BindString(R.string.chapter_title)
+    String chapter_title;
 
-  QueueViewHolder(View view, ViewHolderListener listener) {
-    super(view, listener);
-  }
+    QueueViewHolder(View view, ViewHolderListener listener) {
+        super(view, listener);
+    }
 
-  @Override void bindModel(@NonNull Track track) {
-    title.setText(track.title());
-    subtitle.setText(track.artistTitle());
-    duration.setText(DateUtils.formatElapsedTime(track.duration() / 1000));
-  }
+    @Override
+    void bindModel(@NonNull Track track) {
+        title.setText(String.format(chapter_title, track.index()));
+        subtitle.setText(track.albumTitle());
+        duration.setText(DateUtils.formatElapsedTime(track.duration() / 1000));
+    }
 }

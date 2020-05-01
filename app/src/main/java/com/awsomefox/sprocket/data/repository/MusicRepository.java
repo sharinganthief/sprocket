@@ -25,14 +25,22 @@ import com.awsomefox.sprocket.util.Pair;
 
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.reactivex.Single;
+import okhttp3.HttpUrl;
 
 public interface MusicRepository {
-  Single<List<PlexItem>> browseLibrary(Library lib);
-  Single<List<PlexItem>> browseMediaType(MediaType mediaType, int offset);
+    Single<List<PlexItem>> browseLibrary(Library lib);
+
+    Single<List<PlexItem>> browseMediaType(MediaType mediaType, int offset);
 
     Single<List<PlexItem>> artistItems(Author artist);
 
     Single<List<PlexItem>> albumItems(Book album);
-  Single<Pair<List<Track>, Long>> createPlayQueue(Track track);
+
+    Single<Pair<List<Track>, Long>> createPlayQueue(Track track);
+
+    Completable scrobble(HttpUrl url, String ratingKey);
+
+    Completable unscrobble(HttpUrl url, String ratingKey);
 }

@@ -15,6 +15,8 @@
  */
 package com.awsomefox.sprocket.playback;
 
+import android.text.format.DateUtils;
+
 import com.awsomefox.sprocket.data.api.MediaService;
 import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.util.Rx;
@@ -38,6 +40,8 @@ class TimelineManager {
   private final MediaService media;
   private final Rx rx;
   private CompositeDisposable disposables;
+    private Track currentTrack;
+    private long currentTrackedProgress = 0L;
 
   TimelineManager(MediaController mediaController, QueueManager queueManager, MediaService media,
                   Rx rx) {
@@ -46,6 +50,7 @@ class TimelineManager {
     this.media = media;
     this.rx = rx;
     disposables = new CompositeDisposable();
+
   }
 
   void start() {
@@ -60,14 +65,28 @@ class TimelineManager {
   }
 
   private Completable updateTimeline(Timeline t) {
+      //if no track set the current track to the timeline track
+      if (currentTrack == null) {
+          currentTrack = t.track;
+      }
+      //if new chapter playing scrobble the previous track to make sure it is marked as completed
+      if (!currentTrack.ratingKey().equals(t.track.ratingKey())) {
+          Completable result = media.scrobble(currentTrack.uri(), currentTrack.ratingKey());
+          currentTrack = t.track;
+          Timber.d("Scrobling previous track");
+          return result;
+      }
+      //update track location to plex
+      currentTrackedProgress = t.time;
+      Timber.d("Sending progress update at %s", DateUtils.formatElapsedTime(currentTrackedProgress / 1000));
     return media.timeline(t.track.uri(), t.track.queueItemId(), t.track.key(), t.track.ratingKey(),
-        t.state, t.track.duration(), t.time)
-        .onErrorComplete(); // Skip errors;
+            t.state, t.track.duration(), t.time)
+            .onErrorComplete(); // Skip errors;
   }
 
   private Flowable<Long> progress() {
     return mediaController.progress()
-            .filter(progress -> (progress % 5000) == 0);  // Send updates every 10 seconds but not exact
+            .filter(progress -> (progress - currentTrackedProgress) > 10000);  // Send updates every 10 seconds playtime
   }
 
   private Flowable<Track> currentTrack() {

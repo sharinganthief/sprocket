@@ -17,13 +17,13 @@ package com.awsomefox.sprocket.ui.adapter;
 
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.awsomefox.sprocket.data.model.Track;
-
 import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.data.model.Track;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +65,16 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueViewHolder>
   @Override public void onClick(int position) {
     listener.onTrackClicked(items.get(position));
   }
+
+    @Override
+    public void onMarkFinished(int position, ImageView iv) {
+//TODO add to que ?
+    }
+
+    @Override
+    public void onMarkUnstarted(int position, ImageView iv) {
+
+    }
 
   public void setQueue(List<Track> queue, int position) {
     this.items = queue;

@@ -69,18 +69,19 @@ interface Playback {
 
   /**
    * @param track to play
+   * @param speed
    */
-  void play(Track track);
+  void play(Track track, float speed);
 
   /**
    * Pause the current playing track
    */
-  void pause();
+  void pause(float speed);
 
   /**
    * Seek to the given position
    */
-  void seekTo(long position);
+  void seekTo(long position, float speed);
 
   /**
    * @return the current track being processed in any state or null.
