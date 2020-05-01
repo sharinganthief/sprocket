@@ -1,4 +1,4 @@
-Sprocket ![Logo](https://raw.github.com/AwsomeFox/sprocket/master/cast/sprocket_logo.png)
+Sprocket <a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/cast/sprocket_logo.png" height="100" width="100" ></a>
 =======
 
 Sprocket is an Android audiobook player for Plex Media Server with Google Cast support. Simply simply login to access your audiobook libraries. Works better if you set the library agent to audiobook https://forums.plex.tv/t/rel-audiobook-metadata-agent-audible/199579.
