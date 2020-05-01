@@ -216,7 +216,7 @@ class CastPlayback implements Playback {
 
     @Override
     public void setSpeed(float speed) {
-        remoteMediaClient.setPlaybackRate(speed);
+      remoteMediaClient.setPlaybackRate(Math.min(speed, 2.0));
     }
 
     @Override
@@ -250,7 +250,7 @@ class CastPlayback implements Playback {
   }
 
     private void loadMedia(@NonNull Track track, boolean autoPlay, float speed) throws JSONException {
-    Timber.d("loadMedia %s %s", track, autoPlay);
+      Timber.d("loadMedia %s %s %s", track, autoPlay, speed);
     if (!track.equals(currentTrack)) {
       currentTrack = track;
       currentPosition = 0;
@@ -262,7 +262,7 @@ class CastPlayback implements Playback {
         .setAutoplay(autoPlay)
             .setPlayPosition(Math.min(Math.max(currentPosition, track.viewOffset()), track.duration()))
         .setCustomData(customData)
-            .setPlaybackRate(speed)
+            .setPlaybackRate(Math.min(speed, 2.0))
         .build();
     remoteMediaClient.load(media, loadOptions);
   }

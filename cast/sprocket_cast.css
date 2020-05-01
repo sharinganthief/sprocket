@@ -3,7 +3,7 @@
 }
 
 .logo {
-  background-image: url(https://raw.githubusercontent.com/awsomefox/sprocket/master/cast/sprocket_logo_big_color.png);
+  background-image: url(https://raw.githubusercontent.com/AwsomeFox/sprocket/master/cast/sprocket_logo_color_big.png);
 }
 
 .progressBar {
@@ -11,6 +11,6 @@
 }
 
 .watermark {
-  background-image: url(https://raw.githubusercontent.com/awsomefox/sprocket/master/cast/sprocket_logo_color.png);
+  background-image: url(https://raw.githubusercontent.com/AwsomeFox/sprocket/master/cast/sprocket_logo_color.png);
   background-size: 200px 200px;
 }
