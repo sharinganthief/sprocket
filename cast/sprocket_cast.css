@@ -1,0 +1,16 @@
+.background {
+  background: #00806f;
+}
+
+.logo {
+  background-image: url(https://raw.githubusercontent.com/awsomefox/sprocket/master/cast/sprocket_logo_big_color.png);
+}
+
+.progressBar {
+  background: #9eeb34;
+}
+
+.watermark {
+  background-image: url(https://raw.githubusercontent.com/awsomefox/sprocket/master/cast/sprocket_logo_color.png);
+  background-size: 200px 200px;
+}
