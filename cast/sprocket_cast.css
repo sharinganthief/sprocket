@@ -1,9 +1,9 @@
 .background {
-  background: #00806f;
+  background: #242424;
 }
 
 .logo {
-  background-image: url(https://raw.githubusercontent.com/AwsomeFox/sprocket/master/cast/sprocket_logo_color_big.png);
+  background-image: url(https://raw.githubusercontent.com/AwsomeFox/sprocket/master/cast/sprocket_logo_color.png);
 }
 
 .progressBar {
@@ -12,5 +12,5 @@
 
 .watermark {
   background-image: url(https://raw.githubusercontent.com/AwsomeFox/sprocket/master/cast/sprocket_logo_color.png);
-  background-size: 200px 200px;
+  background-size: 100px 100px;
 }

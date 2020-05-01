@@ -2,5 +2,5 @@
 <full-backup-content>
     <exclude
         domain="sharedpref"
-        path="klingar.prefs.xml" />
+        path="sprocket.prefs.xml" />
 </full-backup-content>

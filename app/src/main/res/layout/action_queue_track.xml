@@ -6,6 +6,6 @@
     android:layout_height="wrap_content"
     android:background="?android:selectableItemBackgroundBorderless"
     android:contentDescription="@string/description_queue"
-    android:padding="3dp"
+    android:padding="5dp"
     android:scaleType="fitCenter"
     app:srcCompat="@drawable/player_queue_track" />

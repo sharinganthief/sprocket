@@ -8,36 +8,52 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start|center_vertical"
-        android:layout_marginStart="@dimen/item_horizontal_padding"
+        android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/miniplayer_track_title"
+        <com.awsomefox.sprocket.ui.widget.SquareImageView
+            android:id="@+id/album_thumb"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="10"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="@dimen/item_horizontal_padding"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/miniplayer_track_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/title"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/miniplayer_book_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/subtitle"
+                android:ellipsize="end"
+                android:singleLine="true" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/miniplayer_play_pause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/title"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/miniplayer_artist_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/subtitle" />
-
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="8dp"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:contentDescription="@string/description_play"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/miniplayer_play_pause" />
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/miniplayer_play_pause"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|center_vertical"
-        android:layout_marginEnd="8dp"
-        android:background="?android:selectableItemBackgroundBorderless"
-        android:contentDescription="@string/description_play"
-        android:padding="8dp"
-        android:scaleType="fitCenter"
-        app:srcCompat="@drawable/miniplayer_play_pause" />
 
 </FrameLayout>
