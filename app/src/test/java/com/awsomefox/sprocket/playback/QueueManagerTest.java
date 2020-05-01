@@ -19,14 +19,12 @@ import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.util.Pair;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
-import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import io.reactivex.subscribers.TestSubscriber;
 import okhttp3.HttpUrl;
@@ -40,14 +38,14 @@ public class QueueManagerTest {
   private List<Track> queue;
 
   @Before public void setup() {
-    queueManager = new QueueManager(new Random(1337));
+      queueManager = new QueueManager();
     queue = Arrays.asList(
         createTrack(100),
         createTrack(200),
         createTrack(300),
         createTrack(400),
         createTrack(500));
-    queueManager.setQueue(new ArrayList<>(queue), 1000);
+      queueManager.setQueue(new ArrayList<>(queue), 1000, 0L);
   }
 
   @Test public void currentQueue() {
@@ -87,135 +85,6 @@ public class QueueManagerTest {
     Track expectedTrack = createTrack(20);
     queueManager.setCurrentTrack(expectedTrack);
     assertThat(queueManager.currentTrack(), is(expectedTrack));
-  }
-
-  @Test public void setNewQueueShouldSetShuffleOff() {
-    TestSubscriber<Pair<Integer, Integer>> test = queueManager.mode().take(3).test();
-
-    queueManager.shuffle();
-    queueManager.setQueue(new ArrayList<>(queue), 2000);
-
-    test.awaitTerminalEvent();
-    List<Pair<Integer, Integer>> modes = test.values();
-
-    assertThat(modes.get(0).first, Is.is(QueueManager.SHUFFLE_OFF));
-    assertThat(modes.get(1).first, Is.is(QueueManager.SHUFFLE_ALL));
-    assertThat(modes.get(2).first, Is.is(QueueManager.SHUFFLE_OFF));
-  }
-
-  @Test public void shuffleModes() {
-    TestSubscriber<Pair<Integer, Integer>> test = queueManager.mode().take(3).test();
-
-    queueManager.shuffle();
-    queueManager.shuffle();
-
-    test.awaitTerminalEvent();
-    List<Pair<Integer, Integer>> modes = test.values();
-
-    assertThat(modes.get(0).first, Is.is(QueueManager.SHUFFLE_OFF));
-    assertThat(modes.get(1).first, Is.is(QueueManager.SHUFFLE_ALL));
-    assertThat(modes.get(2).first, Is.is(QueueManager.SHUFFLE_OFF));
-  }
-
-  @Test public void repeatModes() {
-    TestSubscriber<Pair<Integer, Integer>> test = queueManager.mode().take(4).test();
-
-    queueManager.repeat();
-    queueManager.repeat();
-    queueManager.repeat();
-
-    test.awaitTerminalEvent();
-    List<Pair<Integer, Integer>> modes = test.values();
-
-    assertThat(modes.get(0).second, Is.is(QueueManager.REPEAT_OFF));
-    assertThat(modes.get(1).second, Is.is(QueueManager.REPEAT_ALL));
-    assertThat(modes.get(2).second, Is.is(QueueManager.REPEAT_ONE));
-    assertThat(modes.get(3).second, Is.is(QueueManager.REPEAT_OFF));
-  }
-
-  @Test public void shouldChangeQueueOrderOnShuffle() {
-    queueManager.shuffle();
-
-    TestSubscriber<Pair<List<Track>, Integer>> test = queueManager.queue().take(1).test();
-    test.awaitTerminalEvent();
-
-    List<Track> shuffledQueue = test.values().get(0).first;
-
-    assertThat(shuffledQueue, IsIterableContainingInOrder.contains(
-        queue.get(3), queue.get(4), queue.get(2), queue.get(0), queue.get(1)));
-  }
-
-  @Test public void shouldNotChangeCurrentTrackOnShuffle() {
-    Track exptectedTrack = queueManager.currentTrack();
-    queueManager.shuffle();
-    assertThat(queueManager.currentTrack(), is(exptectedTrack));
-  }
-
-  @Test public void skipToNextTrackNoRepeat() {
-    queueManager.next();
-    queueManager.next();
-    queueManager.next();
-    queueManager.next();
-    queueManager.next();
-
-    assertThat(queueManager.getRepeatMode(), Is.is(QueueManager.REPEAT_OFF));
-    assertThat(queueManager.currentTrack(), is(queue.get(4)));
-    assertThat(queueManager.hasNext(), is(false));
-  }
-
-  @Test public void skipToNextTrackRepeatAll() {
-    queueManager.repeat();
-
-    queueManager.next();
-    queueManager.next();
-    queueManager.next();
-    queueManager.next();
-    queueManager.next();
-
-    assertThat(queueManager.getRepeatMode(), Is.is(QueueManager.REPEAT_ALL));
-    assertThat(queueManager.currentTrack(), is(queue.get(0)));
-    assertThat(queueManager.hasNext(), is(true));
-  }
-
-  @Test public void skipToNextTrackRepeatOne() {
-    queueManager.repeat();
-    queueManager.repeat();
-
-    queueManager.next();
-    queueManager.next();
-
-    assertThat(queueManager.getRepeatMode(), Is.is(QueueManager.REPEAT_ONE));
-    assertThat(queueManager.currentTrack(), is(queue.get(0)));
-    assertThat(queueManager.hasNext(), is(true));
-  }
-
-  @Test public void skipToPreviousTrackNoRepeat() {
-    queueManager.previous();
-    queueManager.previous();
-
-    assertThat(queueManager.getRepeatMode(), Is.is(QueueManager.REPEAT_OFF));
-    assertThat(queueManager.currentTrack(), is(queue.get(0)));
-  }
-
-  @Test public void skipToPreviousTrackRepeatAll() {
-    queueManager.repeat();
-
-    queueManager.previous();
-    queueManager.previous();
-
-    assertThat(queueManager.getRepeatMode(), Is.is(QueueManager.REPEAT_ALL));
-    assertThat(queueManager.currentTrack(), is(queue.get(3)));
-  }
-
-  @Test public void skipToPreviousTrackRepeatOne() {
-    queueManager.repeat();
-    queueManager.repeat();
-
-    queueManager.previous();
-    queueManager.previous();
-
-    assertThat(queueManager.getRepeatMode(), Is.is(QueueManager.REPEAT_ONE));
-    assertThat(queueManager.currentTrack(), is(queue.get(0)));
   }
 
   private Track createTrack(int index) {

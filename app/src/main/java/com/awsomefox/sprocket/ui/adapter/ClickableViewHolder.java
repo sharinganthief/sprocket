@@ -16,13 +16,17 @@
 package com.awsomefox.sprocket.ui.adapter;
 
 import android.view.View;
+import android.widget.ImageView;
 
 /**
  * ClickableViewHolder adds a click listener to the default ViewHolder
  */
-abstract class ClickableViewHolder<T> extends BaseViewHolder<T> implements View.OnClickListener {
+public abstract class ClickableViewHolder<T> extends BaseViewHolder<T> implements View.OnClickListener {
 
   private final ViewHolderListener listener;
+    public static final String NONE = "none";
+    public static final String PARTIAL = "partial";
+    public static final String FULL = "full";
 
   ClickableViewHolder(View view, ViewHolderListener listener) {
     super(view);
@@ -31,13 +35,31 @@ abstract class ClickableViewHolder<T> extends BaseViewHolder<T> implements View.
   }
 
   @Override public void onClick(View v) {
-    final int position = getAdapterPosition();
+      final int position = getBindingAdapterPosition();
     if (position >= 0 && listener != null) {
-      listener.onClick(position);
+        if (v.getTag() == null) {
+            listener.onClick(position);
+        } else {
+            String tag = (String) v.getTag();
+            ImageView iv = (ImageView) v;
+            switch (tag) {
+                case PARTIAL:
+                case NONE:
+                    listener.onMarkFinished(position, iv);
+                    break;
+                case FULL:
+                    listener.onMarkUnstarted(position, iv);
+                    break;
+            }
+        }
     }
   }
 
   interface ViewHolderListener {
     void onClick(int position);
+
+      void onMarkFinished(int position, ImageView iv);
+
+      void onMarkUnstarted(int position, ImageView iv);
   }
 }

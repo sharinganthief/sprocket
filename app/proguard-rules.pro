@@ -1,4 +1,4 @@
-# Klingar
+# Sprocket
 -keep class com.awsomefox.sprocket.data.api.model.** { *; }
 
 

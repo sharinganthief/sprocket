@@ -15,6 +15,7 @@
  */
 package com.awsomefox.sprocket.playback;
 
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
@@ -65,7 +66,7 @@ public class PlaybackManagerTest {
 
     mediaSessionCallback.onPlay();
 
-    verify(mockPlayback, times(1)).play(track);
+      verify(mockPlayback, times(1)).play(track, any());
     verify(mockServiceCallback, times(1)).onPlaybackStart();
   }
 
@@ -83,7 +84,7 @@ public class PlaybackManagerTest {
 
     mediaSessionCallback.onPause();
 
-    verify(mockPlayback, times(1)).pause();
+      verify(mockPlayback, times(1)).pause(any());
     verify(mockServiceCallback, times(1)).onPlaybackStop();
   }
 
@@ -92,7 +93,7 @@ public class PlaybackManagerTest {
 
     mediaSessionCallback.onPause();
 
-    verify(mockPlayback, never()).pause();
+      verify(mockPlayback, never()).pause(any());
     verifyNoInteractions(mockServiceCallback);
   }
 
@@ -102,20 +103,20 @@ public class PlaybackManagerTest {
   }
 
   @Test public void onSkipToPreviousEventShortProgress() {
-    when(mockPlayback.getCurrentStreamPosition()).thenReturn(1500);
+      when(mockPlayback.getCurrentStreamPosition()).thenReturn(1500L);
 
     mediaSessionCallback.onSkipToPrevious();
 
     verify(mockQueueManager, times(1)).previous();
-    verify(mockPlayback, never()).seekTo(anyInt());
+      verify(mockPlayback, never()).seekTo(anyInt(), any());
   }
 
   @Test public void onSkipToPreviousEventLongProgress() {
-    when(mockPlayback.getCurrentStreamPosition()).thenReturn(20000);
+//    when(mockPlayback.getCurrentStreamPosition()).thenReturn(20000);
 
     mediaSessionCallback.onSkipToPrevious();
 
-    verify(mockPlayback, times(1)).seekTo(0);
+      verify(mockPlayback, times(1)).seekTo(0, any());
     verifyNoInteractions(mockQueueManager);
   }
 
@@ -126,17 +127,7 @@ public class PlaybackManagerTest {
 
   @Test public void onSeekToEvent() {
     mediaSessionCallback.onSeekTo(1337);
-    verify(mockPlayback, times(1)).seekTo(1337);
-  }
-
-  @Test public void onRepeatEvent() {
-    mediaSessionCallback.onCustomAction(PlaybackManager.CUSTOM_ACTION_REPEAT, null);
-    verify(mockQueueManager, times(1)).repeat();
-  }
-
-  @Test public void onShuffleEvent() {
-    mediaSessionCallback.onCustomAction(PlaybackManager.CUSTOM_ACTION_SHUFFLE, null);
-    verify(mockQueueManager, times(1)).shuffle();
+      verify(mockPlayback, times(1)).seekTo(1337, any());
   }
 
   @Test public void onPlaybackStatusChanged() {
@@ -146,12 +137,12 @@ public class PlaybackManagerTest {
 
     playbackManager.onPlaybackStatusChanged();
 
-    verify(mockServiceCallback, times(1)).onPlaybackStateUpdated(any(PlaybackStateCompat.class));
+      verify(mockServiceCallback, times(1)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class));
     verify(mockServiceCallback, times(1)).onNotificationRequired();
 
     playbackManager.onPlaybackStatusChanged();
 
-    verify(mockServiceCallback, times(2)).onPlaybackStateUpdated(any(PlaybackStateCompat.class));
+      verify(mockServiceCallback, times(2)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class));
     verifyNoMoreInteractions(mockServiceCallback);
   }
 

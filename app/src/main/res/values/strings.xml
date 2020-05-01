@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Klingar</string>
+    <string name="app_name">Sprocket</string>
 
     <string name="books">Books</string>
     <string name="authors">Authors</string>
@@ -20,7 +20,7 @@
     <string name="action_queue_track">Queue</string>
     <string name="action_change_speed">Change Playback Speed</string>
 
-    <string name="description_logo">Klingar logo</string>
+    <string name="description_logo">Sprocket logo</string>
     <string name="description_queue">Show playing queue</string>
     <string name="description_speed">Change now playing speed</string>
     <string name="description_track">Show album cover</string>
@@ -38,10 +38,18 @@
     <string name="casting_to_device">Casting to %1$s</string>
     <string name="stop_casting">Stop Casting</string>
 
-    <string name="notification_channel">Klingar_Channel_ID</string>
-    <string name="notification_channel_description">Channel ID for Klingar</string>
+    <string name="notification_channel">Sprocket_chanel_id</string>
+    <string name="notification_channel_description">Channel ID for Sprocket</string>
     <string name="now_playing_speed_text">Now Playing Speed:</string>
 
     <string name="chapter_title">Chapter %d</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="mark_finshed">Mark item as finished?</string>
+    <string name="mark_unstarted">Mark item as unstarted?</string>
+
+    <string name="dot_spacer">%s • %s</string>
+    <string name="self_destruct">Login</string>
 
 </resources>

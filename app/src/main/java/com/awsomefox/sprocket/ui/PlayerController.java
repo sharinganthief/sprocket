@@ -41,8 +41,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.awsomefox.sprocket.R;
 import com.awsomefox.sprocket.SprocketApp;
 import com.awsomefox.sprocket.data.model.Track;
-import com.awsomefox.sprocket.playback.MediaController;
-import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.ui.adapter.QueueAdapter;
 import com.awsomefox.sprocket.ui.widget.DividerItemDecoration;
 import com.awsomefox.sprocket.util.Rx;
@@ -62,12 +60,13 @@ import butterknife.OnClick;
 import static com.bluelinelabs.conductor.rxlifecycle2.ControllerEvent.DETACH;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class PlayerController extends BaseController implements QueueAdapter.OnTrackClickListener {
+public class PlayerController extends BaseMediaController implements QueueAdapter.OnTrackClickListener {
 
     private static final int[] PLAY = {-R.attr.state_pause};
     private static final int[] PAUSE = {R.attr.state_pause};
     private static final int[] QUEUE = {-R.attr.state_track};
     private static final int[] TRACK = {R.attr.state_track};
+    public static final String SPEED = "speed";
     private final QueueAdapter queueAdapter;
     @BindView(R.id.content_loading)
     ContentLoadingProgressBar contentLoading;
@@ -77,8 +76,8 @@ public class PlayerController extends BaseController implements QueueAdapter.OnT
     RecyclerView queueRecyclerView;
     @BindView(R.id.player_track_title)
     TextView trackTitle;
-    @BindView(R.id.player_artist_title)
-    TextView artistTitle;
+    @BindView(R.id.player_book_author)
+    TextView authorBook;
     @BindView(R.id.player_seekbar)
     SeekBar seekBar;
     @BindView(R.id.player_elapsed_time)
@@ -101,16 +100,14 @@ public class PlayerController extends BaseController implements QueueAdapter.OnT
     String descQueue;
     @BindString(R.string.description_track)
     String descTrack;
-    @Inject
-    QueueManager queueManager;
-    @Inject
-    MediaController mediaController;
+    @BindString(R.string.chapter_title)
+    String chapter_title;
+    @BindString(R.string.dot_spacer)
+    String dot_spacer;
     @Inject
     Rx rx;
     private boolean isSeeking;
     private boolean isQueueVisible;
-    private float speed;
-    private Track currentTrack;
 
     public PlayerController(Bundle args) {
         super(args);
@@ -221,33 +218,33 @@ public class PlayerController extends BaseController implements QueueAdapter.OnT
 
             SeekBar speedBar = dialog.findViewById(R.id.speed_seek_bar);
             TextView speedValue = dialog.findViewById(R.id.speed_value);
-            speedValue.setText(String.valueOf(mediaController.getSpeed()));
-            if (speedBar != null) {
-                speedBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(SeekBar speedBar, int progress, boolean fromUser) {
-                        float speed = (speedBar.getProgress() + 5) / 10f;
-                        if (speedValue != null) {
-                            mediaController.setSpeed(speed);
-                            speedValue.setText(String.valueOf(speed));
-                        }
+            Objects.requireNonNull(speedValue).setText(String.valueOf(mediaController.getSpeed()));
+            Objects.requireNonNull(speedBar).setProgress((int) mediaController.getSpeed() * 10 - 5);
+            speedBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar speedBar, int newSpeed, boolean fromUser) {
+                    if (fromUser) {
+                        float speed = (newSpeed + 5) / 10f;
+                        updateSpeed(speed);
+                        mediaController.updatePlaySpeed();
+                        speedValue.setText(String.valueOf(speed));
                     }
+                }
 
-                    @Override
-                    public void onStartTrackingTouch(SeekBar speedBar) {
+                @Override
+                public void onStartTrackingTouch(SeekBar speedBar) {
 
-                    }
+                }
 
-                    @Override
-                    public void onStopTrackingTouch(SeekBar speedBar) {
-                        float speed = (speedBar.getProgress() + 5) / 10f;
-                        if (speedValue != null) {
-                            mediaController.setSpeed(speed);
-                            speedValue.setText(String.valueOf(speed));
-                        }
-                    }
-                });
-            }
+                @Override
+                public void onStopTrackingTouch(SeekBar speedBar) {
+                    float speed = (speedBar.getProgress() + 5) / 10f;
+                    updateSpeed(speed);
+                    mediaController.updatePlaySpeed();
+                    speedValue.setText(String.valueOf(speed));
+                    preferences.edit().putFloat(SPEED, speed).apply();
+                }
+            });
         });
 
     }
@@ -273,12 +270,12 @@ public class PlayerController extends BaseController implements QueueAdapter.OnT
 
     @OnClick(R.id.player_skip_forward)
     void onClickForward() {
-        mediaController.seekTo(mediaController.getPlaybackState().getPosition() + 30000);
+        mediaController.skipForward();
     }
 
     @OnClick(R.id.player_skip_back)
     void onClickBack() {
-        mediaController.seekTo(mediaController.getPlaybackState().getPosition() - 30000);
+        mediaController.skipBack();
     }
 
     @OnClick(R.id.player_play_pause)
@@ -305,7 +302,7 @@ public class PlayerController extends BaseController implements QueueAdapter.OnT
                 .subscribe(progress -> {
                     if (!isSeeking) {
                         seekBar.setProgress((int) (progress / 1000));
-
+                        persistProgress(progress);
                     }
                 }, Rx::onError));
 
@@ -336,7 +333,6 @@ public class PlayerController extends BaseController implements QueueAdapter.OnT
 
     private void updateTrackInfo(@NonNull Track track) {
         contentLoading.hide();
-        currentTrack = track;
 
         if (getActivity() != null) {
             Glide.with(getActivity())
@@ -344,12 +340,13 @@ public class PlayerController extends BaseController implements QueueAdapter.OnT
                     .transition(withCrossFade())
                     .into(background);
         }
-
+        seekBar.setProgress((int) track.viewOffset() / 1000);
         seekBar.setMax((int) track.duration() / 1000);
         totalTime.setText(DateUtils.formatElapsedTime(track.duration() / 1000));
 
-        trackTitle.setText(track.title());
-        artistTitle.setText(track.artistTitle());
+        authorBook.setText(String.format(dot_spacer, track.albumTitle(), track.artistTitle()));
+        trackTitle.setText(String.format(chapter_title, track.index()));
+        persistCurrentTrack(track);
     }
 
     @Override

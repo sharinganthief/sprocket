@@ -24,14 +24,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.util.Rx;
 import com.bluelinelabs.conductor.ControllerChangeHandler;
 import com.bluelinelabs.conductor.ControllerChangeType;
 import com.bluelinelabs.conductor.rxlifecycle2.RxController;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastStateListener;
-import com.awsomefox.sprocket.util.Rx;
-
-import com.awsomefox.sprocket.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -41,67 +40,76 @@ import leakcanary.AppWatcher;
 
 abstract class BaseController extends RxController {
 
-  private final CastStateListener castStateListener = newState -> { };
-  @Nullable @BindView(R.id.toolbar) Toolbar toolbar;
-  CompositeDisposable disposables;
-  private CastContext castContext;
-  private Unbinder unbinder;
-  private boolean hasExited;
+    private final CastStateListener castStateListener = newState -> {
+    };
+    @Nullable
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    CompositeDisposable disposables;
+    private CastContext castContext;
+    private Unbinder unbinder;
+    private boolean hasExited;
 
-  BaseController(Bundle args) {
-    super(args);
-  }
-
-  protected abstract int getLayoutResource();
-  protected abstract void injectDependencies();
-
-  @NonNull @Override
-  protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
-    injectDependencies();
-    View view = inflater.inflate(getLayoutResource(), container, false);
-    unbinder = ButterKnife.bind(this, view);
-    if (getActivity() != null) {
-      if (toolbar != null) {
-        ((SprocketActivity) getActivity()).setSupportActionBar(toolbar);
-      }
-      castContext = CastContext.getSharedInstance(getActivity());
+    BaseController(Bundle args) {
+        super(args);
     }
-    return view;
-  }
 
-  @Override protected void onAttach(@NonNull View view) {
-    super.onAttach(view);
-    disposables = new CompositeDisposable();
-    castContext.addCastStateListener(castStateListener);
-  }
+    protected abstract int getLayoutResource();
 
-  @Override protected void onDetach(@NonNull View view) {
-    super.onDetach(view);
-    Rx.dispose(disposables);
-    castContext.removeCastStateListener(castStateListener);
-  }
+    protected abstract void injectDependencies();
 
-  @Override protected void onDestroyView(@NonNull View view) {
-    super.onDestroyView(view);
-    castContext = null;
-    unbinder.unbind();
-    unbinder = null;
-  }
-
-  @Override protected void onDestroy() {
-    super.onDestroy();
-    if (hasExited) {
-      AppWatcher.INSTANCE.getObjectWatcher().watch(this);
+    @NonNull
+    @Override
+    protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
+        injectDependencies();
+        View view = inflater.inflate(getLayoutResource(), container, false);
+        unbinder = ButterKnife.bind(this, view);
+        if (getActivity() != null) {
+            if (toolbar != null) {
+                ((SprocketActivity) getActivity()).setSupportActionBar(toolbar);
+            }
+            castContext = CastContext.getSharedInstance(getActivity());
+        }
+        return view;
     }
-  }
 
-  @Override
-  protected void onChangeEnded(@NonNull ControllerChangeHandler changeHandler,
-                               @NonNull ControllerChangeType changeType) {
-    super.onChangeEnded(changeHandler, changeType);
-    hasExited = !changeType.isEnter;
-    if (isDestroyed()) {
-      AppWatcher.INSTANCE.getObjectWatcher().watch(this);
+    @Override
+    protected void onAttach(@NonNull View view) {
+        super.onAttach(view);
+        disposables = new CompositeDisposable();
+        castContext.addCastStateListener(castStateListener);
     }
-  }
+
+    @Override
+    protected void onDetach(@NonNull View view) {
+        super.onDetach(view);
+        Rx.dispose(disposables);
+        castContext.removeCastStateListener(castStateListener);
+    }
+
+    @Override
+    protected void onDestroyView(@NonNull View view) {
+        super.onDestroyView(view);
+        castContext = null;
+        unbinder.unbind();
+        unbinder = null;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (hasExited) {
+            AppWatcher.INSTANCE.getObjectWatcher().watch(this);
+        }
+    }
+
+    @Override
+    protected void onChangeEnded(@NonNull ControllerChangeHandler changeHandler,
+                                 @NonNull ControllerChangeType changeType) {
+        super.onChangeEnded(changeHandler, changeType);
+        hasExited = !changeType.isEnter;
+        if (isDestroyed()) {
+            AppWatcher.INSTANCE.getObjectWatcher().watch(this);
+        }
+    }
 }

@@ -101,16 +101,6 @@ public class MediaControllerTest {
     verify(mockTransportControls, times(1)).skipToPrevious();
   }
 
-  @Test public void shuffle() {
-      mediaController.shuffle();
-    verify(mockTransportControls, times(1)).sendCustomAction(PlaybackManager.CUSTOM_ACTION_SHUFFLE, null);
-  }
-
-  @Test public void repeat() {
-      mediaController.repeat();
-    verify(mockTransportControls, times(1)).sendCustomAction(PlaybackManager.CUSTOM_ACTION_REPEAT, null);
-  }
-
   @Test public void notifyWhenPlaybackStateChanges() {
     when(mockPlaybackState.getState())
         .thenReturn(STATE_BUFFERING)

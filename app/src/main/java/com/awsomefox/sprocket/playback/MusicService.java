@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -130,6 +131,9 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     if (startIntent != null) {
       if (ACTION_STOP_CASTING.equals(startIntent.getAction())) {
         CastContext.getSharedInstance(this).getSessionManager().endCurrentSession(true);
+//        mediaNotificationManager.stopNotification();
+          onDestroy();
+          onCreate();
       } else {
         // Try to handle the intent as a media button event wrapped by MediaButtonReceiver
         MediaButtonReceiver.handleIntent(session, startIntent);
@@ -176,15 +180,17 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     // potentially stopping the service.
     delayedStopHandler.removeCallbacksAndMessages(null);
     delayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
-    stopForeground(true);
+      stopForeground(false);
   }
 
   @Override public void onNotificationRequired() {
     mediaNotificationManager.startNotification();
   }
 
-  @Override public void onPlaybackStateUpdated(PlaybackStateCompat newState) {
+    @Override
+    public void onPlaybackStateUpdated(PlaybackStateCompat newState, MediaMetadataCompat metadataCompat) {
     session.setPlaybackState(newState);
+        session.setMetadata(metadataCompat);
   }
 
   /**

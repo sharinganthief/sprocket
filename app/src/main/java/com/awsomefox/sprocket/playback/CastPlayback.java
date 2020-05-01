@@ -149,9 +149,10 @@ class CastPlayback implements Playback {
     currentPosition = getCurrentStreamPosition();
   }
 
-  @Override public void play(Track track) {
+    @Override
+    public void play(Track track, float speed) {
     try {
-      loadMedia(track, true);
+        loadMedia(track, true, speed);
       state = PlaybackStateCompat.STATE_BUFFERING;
       if (callback != null) {
         callback.onPlaybackStatusChanged();
@@ -165,13 +166,14 @@ class CastPlayback implements Playback {
     }
   }
 
-  @Override public void pause() {
+    @Override
+    public void pause(float speed) {
     try {
       if (remoteMediaClient.hasMediaSession()) {
         remoteMediaClient.pause();
         currentPosition = (int) remoteMediaClient.getApproximateStreamPosition();
       } else {
-        loadMedia(currentTrack, false);
+          loadMedia(currentTrack, false, speed);
       }
     } catch (JSONException e) {
       Timber.e(e, "Exception pausing cast playback");
@@ -183,7 +185,7 @@ class CastPlayback implements Playback {
   }
 
     @Override
-    public void seekTo(long position) {
+    public void seekTo(long position, float speed) {
     if (currentTrack == null) {
       state = PlaybackStateCompat.STATE_ERROR;
       if (callback != null) {
@@ -197,7 +199,7 @@ class CastPlayback implements Playback {
         currentPosition = position;
       } else {
         currentPosition = position;
-        loadMedia(currentTrack, false);
+          loadMedia(currentTrack, false, speed);
       }
     } catch (JSONException e) {
       Timber.e(e, "Exception pausing cast playback");
@@ -214,12 +216,15 @@ class CastPlayback implements Playback {
 
     @Override
     public void setSpeed(float speed) {
-        remoteMediaClient.setPlaybackRate(speed);
+      remoteMediaClient.setPlaybackRate(Math.min(speed, 2.0));
     }
 
     @Override
     public float getSpeed() {
-        return 0.0f;
+        if (remoteMediaClient == null || remoteMediaClient.getMediaStatus() == null) {
+            return 1.0f;
+        }
+        return (float) remoteMediaClient.getMediaStatus().getPlaybackRate();
     }
 
   @Override public void setCurrentTrack(Track track) {
@@ -244,8 +249,8 @@ class CastPlayback implements Playback {
     return state;
   }
 
-  private void loadMedia(@NonNull Track track, boolean autoPlay) throws JSONException {
-    Timber.d("loadMedia %s %s", track, autoPlay);
+    private void loadMedia(@NonNull Track track, boolean autoPlay, float speed) throws JSONException {
+      Timber.d("loadMedia %s %s %s", track, autoPlay, speed);
     if (!track.equals(currentTrack)) {
       currentTrack = track;
       currentPosition = 0;
@@ -255,8 +260,9 @@ class CastPlayback implements Playback {
     MediaInfo media = toCastMediaMetadata(track, customData);
     MediaLoadOptions loadOptions = new MediaLoadOptions.Builder()
         .setAutoplay(autoPlay)
-        .setPlayPosition(currentPosition)
+            .setPlayPosition(Math.min(Math.max(currentPosition, track.viewOffset()), track.duration()))
         .setCustomData(customData)
+            .setPlaybackRate(Math.min(speed, 2.0))
         .build();
     remoteMediaClient.load(media, loadOptions);
   }

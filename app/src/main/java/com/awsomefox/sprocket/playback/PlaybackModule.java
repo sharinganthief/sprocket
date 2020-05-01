@@ -28,7 +28,9 @@ public class PlaybackModule {
         return new MediaController(seconds, rx);
   }
 
-  @Provides @Singleton QueueManager provideQueueManager(Random random) {
-    return new QueueManager(random);
+    @Provides
+    @Singleton
+    QueueManager provideQueueManager() {
+        return new QueueManager();
   }
 }

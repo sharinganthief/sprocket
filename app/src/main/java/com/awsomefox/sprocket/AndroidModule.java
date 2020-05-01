@@ -28,7 +28,7 @@ import dagger.Provides;
 
 @Module class AndroidModule {
 
-  private static final String PREFS = "klingar.prefs";
+    private static final String PREFS = "sprocket.prefs";
 
   @Provides Resources provideResources(Context context) {
     return context.getResources();

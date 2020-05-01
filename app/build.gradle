@@ -40,8 +40,8 @@ android {
         minSdkVersion versions.min_sdk
         targetSdkVersion versions.target_sdk
         versionCode 1105
-        versionName '0.13'
-        buildConfigField 'String', 'CAST_APP_ID', '\"631E34EA\"'
+        versionName '0.2.0'
+        buildConfigField 'String', 'CAST_APP_ID', '\"ACB4E805\"'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     signingConfigs {
@@ -134,4 +134,5 @@ dependencies {
     testImplementation "junit:junit:${versions.junit}"
     testImplementation "org.hamcrest:hamcrest-library:${versions.hamcrest}"
     testImplementation "org.mockito:mockito-core:${versions.mockito}"
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
 }

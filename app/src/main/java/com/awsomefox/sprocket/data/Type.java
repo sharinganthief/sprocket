@@ -23,6 +23,7 @@ public final class Type {
   public static final int HEADER = R.id.header;
   public static final int MEDIA_TYPE = R.id.media_type;
   public static final int TRACK = R.id.track;
+    public static final int RECENT = R.id.recent;
 
   private Type() {
     // no instances

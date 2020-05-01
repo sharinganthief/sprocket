@@ -93,7 +93,7 @@ class LocalPlayback implements Playback, Player.EventListener,
     this.context = context;
     this.mediaController = mediaController;
     this.audioManager = audioManager;
-    this.wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "klingar");
+    this.wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "sprocket");
     String agent = Util.getUserAgent(context, context.getResources().getString(R.string.app_name));
     this.mediaSourceFactory = new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(
         context, null, new OkHttpDataSourceFactory(callFactory, agent)));
@@ -159,7 +159,8 @@ class LocalPlayback implements Playback, Player.EventListener,
     // Nothing to do. Position maintained by ExoPlayer.
   }
 
-  @Override public void play(Track track) {
+  @Override
+  public void play(Track track, float speed) {
     Timber.d("play %s", track);
     playOnFocusGain = true;
     tryToGetAudioFocus();
@@ -189,6 +190,8 @@ class LocalPlayback implements Playback, Player.EventListener,
       if (hasPlexStart) {
         exoPlayer.seekTo(Math.min(Math.max(0, track.viewOffset()), track.duration()));
       }
+      PlaybackParameters param = new PlaybackParameters(speed);
+      exoPlayer.setPlaybackParameters(param);
       exoPlayer.prepare(source, !hasPlexStart, !hasPlexStart);
 
       // If we are streaming from the internet, we want to hold a Wifi lock, which prevents the
@@ -199,7 +202,8 @@ class LocalPlayback implements Playback, Player.EventListener,
     configurePlayerState();
   }
 
-  @Override public void pause() {
+  @Override
+  public void pause(float speed) {
     Timber.d("pause");
 
     // Pause player and cancel the 'foreground service' state.
@@ -212,7 +216,7 @@ class LocalPlayback implements Playback, Player.EventListener,
   }
 
   @Override
-  public void seekTo(long position) {
+  public void seekTo(long position, float speed) {
     Timber.d("seekTo %s", position);
     if (exoPlayer != null) {
       registerAudioNoisyReceiver();
@@ -230,8 +234,9 @@ class LocalPlayback implements Playback, Player.EventListener,
   public void setSpeed(float speed) {
     PlaybackParameters param = new PlaybackParameters(speed);
     exoPlayer.setPlaybackParameters(param);
-//    mediaController.get
-    exoPlayer.setPlaybackParameters(param);
+    if (callback != null) {
+      callback.onPlaybackStatusChanged();
+    }
   }
 
   @Override
@@ -315,7 +320,7 @@ class LocalPlayback implements Playback, Player.EventListener,
 
     if (audioFocus == AUDIO_NO_FOCUS_NO_DUCK) {
       // We don't have audio focus and can't duck, so we have to pause
-      pause();
+      pause(0);
     } else {
       registerAudioNoisyReceiver();
 

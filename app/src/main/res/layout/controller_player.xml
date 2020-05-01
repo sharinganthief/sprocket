@@ -48,14 +48,15 @@
             android:gravity="center"
             android:textColor="@color/title"
             android:textStyle="bold" />
-
         <TextView
-            android:id="@+id/player_artist_title"
+            android:id="@+id/player_book_author"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:textColor="@color/subtitle" />
+            android:textColor="@color/subtitle"
+            android:ellipsize="end"
+            android:singleLine="true" />
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.util.Objects;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import okhttp3.HttpUrl;
@@ -76,7 +77,7 @@ public class MediaServiceTest {
 
     @Test
     public void recentAuthors() {
-        media.recentAuthors(URL, "libKey");
+        media.chaptersInProgress(URL, "libKey");
     assertThat(api.actual, is("https://plex.tv/library/sections/libKey/all?viewCount%3E=1&type=8" +
         "&sort=lastViewedAt:desc&X-Plex-Token=token"));
   }
@@ -107,6 +108,12 @@ public class MediaServiceTest {
       actual = url.toString();
       return Observable.just(new MediaContainer());
     }
+
+      @Override
+      public Completable getNoResponse(@Url HttpUrl url) {
+          actual = url.toString();
+          return Completable.complete();
+      }
 
     @Override public Single<MediaContainer> post(@Url HttpUrl url) {
       actual = url.toString();
