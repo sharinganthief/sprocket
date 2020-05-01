@@ -38,14 +38,14 @@ import com.awsomefox.sprocket.R;
 import com.awsomefox.sprocket.SprocketApp;
 import com.awsomefox.sprocket.data.Key;
 import com.awsomefox.sprocket.data.ServerManager;
-import com.awsomefox.sprocket.data.model.Album;
-import com.awsomefox.sprocket.data.model.Artist;
+import com.awsomefox.sprocket.data.model.Author;
+import com.awsomefox.sprocket.data.model.Book;
 import com.awsomefox.sprocket.data.model.Library;
 import com.awsomefox.sprocket.data.model.MediaType;
 import com.awsomefox.sprocket.data.model.PlexItem;
 import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.data.repository.MusicRepository;
-import com.awsomefox.sprocket.playback.MusicController;
+import com.awsomefox.sprocket.playback.MediaController;
 import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.ui.adapter.MusicAdapter;
 import com.awsomefox.sprocket.ui.widget.DividerItemDecoration;
@@ -87,7 +87,7 @@ public class BrowserController extends BaseController implements
   @Inject
   QueueManager queueManager;
   @Inject
-  MusicController musicController;
+  MediaController mediaController;
   @Inject
   Rx rx;
   private EndScrollListener endScrollListener;
@@ -97,6 +97,11 @@ public class BrowserController extends BaseController implements
   private int currentPage = -1;
   private boolean isLoading;
   private boolean serverRefreshed;
+
+  private static String LIBRARY_KEY = "library_key";
+  private static String LIBRARY_NAME_KEY = "library_name_key";
+  private static String LIBRARY_UUID_KEY = "library_uuid_key";
+  private static String LIBRARY_URI_KEY = "library_uri_key";
 
   public BrowserController(Bundle args) {
     super(args);
@@ -188,9 +193,9 @@ public class BrowserController extends BaseController implements
   @Override public void onPlexItemClicked(PlexItem plexItem) {
     if (plexItem instanceof MediaType) {
       goToMediaType((MediaType) plexItem);
-    } else if (plexItem instanceof Artist) {
+    } else if (plexItem instanceof Author) {
       goToDetails(plexItem);
-    } else if (plexItem instanceof Album) {
+    } else if (plexItem instanceof Book) {
       goToDetails(plexItem);
     } else if (plexItem instanceof Track) {
       playTrack((Track) plexItem);
@@ -270,7 +275,7 @@ public class BrowserController extends BaseController implements
   }
 
   private void observePlayback() {
-    disposables.add(musicController.state()
+    disposables.add(mediaController.state()
         .compose(bindUntilEvent(DETACH))
         .compose(rx.flowableSchedulers())
         .subscribe(state -> {
@@ -310,7 +315,7 @@ public class BrowserController extends BaseController implements
         .compose(rx.singleSchedulers())
         .subscribe(pair -> {
           queueManager.setQueue(pair.first, pair.second);
-          musicController.play();
+          mediaController.play();
         }, Rx::onError));
   }
 

@@ -15,8 +15,8 @@
  */
 package com.awsomefox.sprocket.data.repository;
 
-import com.awsomefox.sprocket.data.model.Album;
-import com.awsomefox.sprocket.data.model.Artist;
+import com.awsomefox.sprocket.data.model.Author;
+import com.awsomefox.sprocket.data.model.Book;
 import com.awsomefox.sprocket.data.model.Library;
 import com.awsomefox.sprocket.data.model.MediaType;
 import com.awsomefox.sprocket.data.model.PlexItem;
@@ -30,7 +30,9 @@ import io.reactivex.Single;
 public interface MusicRepository {
   Single<List<PlexItem>> browseLibrary(Library lib);
   Single<List<PlexItem>> browseMediaType(MediaType mediaType, int offset);
-  Single<List<PlexItem>> artistItems(Artist artist);
-  Single<List<PlexItem>> albumItems(Album album);
+
+    Single<List<PlexItem>> artistItems(Author artist);
+
+    Single<List<PlexItem>> albumItems(Book album);
   Single<Pair<List<Track>, Long>> createPlayQueue(Track track);
 }

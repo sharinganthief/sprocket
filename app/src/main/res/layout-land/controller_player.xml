@@ -96,19 +96,9 @@
         <LinearLayout
             android:id="@+id/player_controls"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="75dp"
             android:orientation="horizontal"
             android:weightSum="5">
-
-            <ImageView
-                android:id="@+id/player_shuffle"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?android:selectableItemBackgroundBorderless"
-                android:contentDescription="@string/description_shuffle_off"
-                android:scaleType="center"
-                app:srcCompat="@drawable/player_shuffle" />
 
             <ImageView
                 android:id="@+id/player_previous"
@@ -117,8 +107,21 @@
                 android:layout_weight="1"
                 android:background="?android:selectableItemBackgroundBorderless"
                 android:contentDescription="@string/description_previous"
+                android:paddingVertical="20dp"
                 android:scaleType="fitCenter"
                 app:srcCompat="@drawable/player_previous" />
+
+            <ImageView
+                android:id="@+id/player_skip_back"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?android:selectableItemBackgroundBorderless"
+                android:contentDescription="@string/description_skip_back"
+                android:paddingVertical="15dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/skip_back"
+                android:tint="@color/accent" />
 
             <ImageView
                 android:id="@+id/player_play_pause"
@@ -128,7 +131,21 @@
                 android:background="?android:selectableItemBackgroundBorderless"
                 android:contentDescription="@string/description_play"
                 android:scaleType="fitCenter"
-                app:srcCompat="@drawable/player_play_pause" />
+                android:paddingVertical="0dp"
+                app:srcCompat="@drawable/player_play_pause"
+                android:tint="@color/accent" />
+
+            <ImageView
+                android:id="@+id/player_skip_forward"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?android:selectableItemBackgroundBorderless"
+                android:contentDescription="@string/description_skip_forward"
+                android:paddingVertical="15dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/skip_forward"
+                android:tint="@color/accent" />
 
             <ImageView
                 android:id="@+id/player_next"
@@ -137,18 +154,9 @@
                 android:layout_weight="1"
                 android:background="?android:selectableItemBackgroundBorderless"
                 android:contentDescription="@string/description_next"
+                android:paddingVertical="20dp"
                 android:scaleType="fitCenter"
                 app:srcCompat="@drawable/player_next" />
-
-            <ImageView
-                android:id="@+id/player_repeat"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?android:selectableItemBackgroundBorderless"
-                android:contentDescription="@string/description_repeat_off"
-                android:scaleType="center"
-                app:srcCompat="@drawable/player_repeat" />
 
         </LinearLayout>
 

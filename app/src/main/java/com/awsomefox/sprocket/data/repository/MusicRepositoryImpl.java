@@ -18,21 +18,21 @@ package com.awsomefox.sprocket.data.repository;
 import androidx.annotation.NonNull;
 import androidx.collection.SimpleArrayMap;
 
-import com.awsomefox.sprocket.util.Strings;
-import com.awsomefox.sprocket.util.Urls;
 import com.awsomefox.sprocket.data.Type;
 import com.awsomefox.sprocket.data.api.MediaService;
 import com.awsomefox.sprocket.data.api.model.Directory;
 import com.awsomefox.sprocket.data.api.model.MediaContainer;
 import com.awsomefox.sprocket.data.api.model.Song;
-import com.awsomefox.sprocket.data.model.Album;
-import com.awsomefox.sprocket.data.model.Artist;
+import com.awsomefox.sprocket.data.model.Author;
+import com.awsomefox.sprocket.data.model.Book;
 import com.awsomefox.sprocket.data.model.Header;
 import com.awsomefox.sprocket.data.model.Library;
 import com.awsomefox.sprocket.data.model.MediaType;
 import com.awsomefox.sprocket.data.model.PlexItem;
 import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.util.Pair;
+import com.awsomefox.sprocket.util.Strings;
+import com.awsomefox.sprocket.util.Urls;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,7 +72,7 @@ class MusicRepositoryImpl implements MusicRepository {
   private Observable<PlexItem> mediaTypes(Library lib) {
     return Observable.fromArray(new MediaType[]{
         MediaType.builder()
-            .title("Artists")
+                .title("Authors")
             .type(Type.ARTIST)
             .mediaKey("8")
             .libraryKey(lib.key())
@@ -80,17 +80,9 @@ class MusicRepositoryImpl implements MusicRepository {
             .uri(lib.uri())
             .build(),
         MediaType.builder()
-            .title("Albums")
+                .title("Books")
             .type(Type.ALBUM)
             .mediaKey("9")
-            .libraryKey(lib.key())
-            .libraryId(lib.uuid())
-            .uri(lib.uri())
-            .build(),
-        MediaType.builder()
-            .title("Tracks")
-            .type(Type.TRACK)
-            .mediaKey("10")
             .libraryKey(lib.key())
             .libraryId(lib.uuid())
             .uri(lib.uri())
@@ -99,9 +91,9 @@ class MusicRepositoryImpl implements MusicRepository {
   }
 
   private Observable<PlexItem> recentlyPlayed(Library lib) {
-    return media.recentArtists(lib.uri(), lib.key())
-        .flatMap(DIRS)
-        .map(artistMapper(lib.key(), lib.uuid(), lib.uri()))
+      return media.recentAuthors(lib.uri(), lib.key())
+              .flatMap(TRACKS)
+              .map(trackMapper(lib.key(), lib.uri()))
         .startWith(Header.builder().title("Recently played").build());
   }
 
@@ -109,9 +101,9 @@ class MusicRepositoryImpl implements MusicRepository {
     Single<List<PlexItem>> browseItems;
 
     if (mt.type() == Type.ARTIST) {
-      browseItems = browseArtists(mt, offset);
+        browseItems = browseAuthors(mt, offset);
     } else if (mt.type() == Type.ALBUM) {
-      browseItems = browseAlbums(mt, offset);
+        browseItems = browseBooks(mt, offset);
     } else {
       browseItems = browseTracks(mt, offset);
     }
@@ -131,14 +123,14 @@ class MusicRepositoryImpl implements MusicRepository {
     });
   }
 
-  private Single<List<PlexItem>> browseArtists(MediaType mt, int offset) {
+    private Single<List<PlexItem>> browseAuthors(MediaType mt, int offset) {
     return media.browse(mt.uri(), mt.libraryKey(), mt.mediaKey(), offset)
         .flatMap(DIRS)
         .map(artistMapper(mt.libraryKey(), mt.libraryId(), mt.uri()))
         .toList();
   }
 
-  private Single<List<PlexItem>> browseAlbums(MediaType mt, int offset) {
+    private Single<List<PlexItem>> browseBooks(MediaType mt, int offset) {
     return media.browse(mt.uri(), mt.libraryKey(), mt.mediaKey(), offset)
         .flatMap(DIRS)
         .map(albumMapper(mt.libraryId(), mt.uri()))
@@ -169,7 +161,8 @@ class MusicRepositoryImpl implements MusicRepository {
         });
   }
 
-  @Override public Single<List<PlexItem>> artistItems(Artist artist) {
+    @Override
+    public Single<List<PlexItem>> artistItems(Author artist) {
     return Single.zip(popularTracks(artist), albums(artist), (tracks, albums) -> {
       List<PlexItem> items = new ArrayList<>();
       if (!tracks.isEmpty()) {
@@ -177,28 +170,29 @@ class MusicRepositoryImpl implements MusicRepository {
         items.addAll(tracks);
       }
       if (!albums.isEmpty()) {
-        items.add(Header.builder().title("Albums").build());
+          items.add(Header.builder().title("Books").build());
         items.addAll(albums);
       }
       return items;
     });
   }
 
-  private Single<List<PlexItem>> popularTracks(Artist artist) {
+    private Single<List<PlexItem>> popularTracks(Author artist) {
     return media.popularTracks(artist.uri(), artist.libraryKey(), artist.ratingKey())
         .flatMap(TRACKS)
         .map(trackMapper(artist.libraryId(), artist.uri()))
         .toList();
   }
 
-  private Single<List<PlexItem>> albums(Artist artist) {
+    private Single<List<PlexItem>> albums(Author artist) {
     return media.albums(artist.uri(), artist.ratingKey())
         .flatMap(DIRS)
         .map(albumMapper(artist.libraryId(), artist.uri()))
         .toList();
   }
 
-  @Override public Single<List<PlexItem>> albumItems(Album album) {
+    @Override
+    public Single<List<PlexItem>> albumItems(Book album) {
     return media.tracks(album.uri(), album.ratingKey())
         .flatMap(TRACKS)
         .map(trackMapper(album.libraryId(), album.uri()))
@@ -216,7 +210,7 @@ class MusicRepositoryImpl implements MusicRepository {
   }
 
   @NonNull private Function<Directory, PlexItem> albumMapper(String libraryId, HttpUrl uri) {
-    return dir -> Album.builder()
+      return dir -> Book.builder()
         .title(dir.title)
         .ratingKey(dir.ratingKey)
         .artistTitle(dir.parentTitle)
@@ -228,7 +222,7 @@ class MusicRepositoryImpl implements MusicRepository {
 
   @NonNull
   private Function<Directory, PlexItem> artistMapper(String libKey, String libraryId, HttpUrl uri) {
-    return dir -> Artist.builder()
+      return dir -> Author.builder()
         .title(dir.title)
         .ratingKey(dir.ratingKey)
         .libraryKey(libKey)
@@ -251,6 +245,8 @@ class MusicRepositoryImpl implements MusicRepository {
         .artistTitle(track.grandparentTitle)
         .index(track.index)
         .duration(track.duration)
+            .viewOffset(track.viewOffset)
+            .viewCount(track.viewCount)
         .thumb(Strings.isBlank(track.thumb) ? null : Urls.addPathToUrl(uri, track.thumb).toString())
         .source(Urls.addPathToUrl(uri, track.media.part.key).toString())
         .uri(uri)

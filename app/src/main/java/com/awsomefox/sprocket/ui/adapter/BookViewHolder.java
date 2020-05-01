@@ -21,30 +21,30 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.data.model.Book;
+import com.awsomefox.sprocket.util.Urls;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.awsomefox.sprocket.data.model.Album;
-import com.awsomefox.sprocket.util.Urls;
-
-import com.awsomefox.sprocket.R;
 
 import butterknife.BindDimen;
 import butterknife.BindView;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-final class AlbumViewHolder extends ClickableViewHolder<Album> {
+final class BookViewHolder extends ClickableViewHolder<Book> {
 
   @BindView(R.id.album_thumb) ImageView thumb;
   @BindView(R.id.album_title) TextView title;
   @BindView(R.id.album_subtitle) TextView subtitle;
   @BindDimen(R.dimen.item_height) int height;
 
-  AlbumViewHolder(View view, ViewHolderListener listener) {
+    BookViewHolder(View view, ViewHolderListener listener) {
     super(view, listener);
   }
 
-  @Override void bindModel(@NonNull Album album) {
+    @Override
+    void bindModel(@NonNull Book album) {
     title.setText(album.title());
 
     //noinspection SuspiciousNameCombination

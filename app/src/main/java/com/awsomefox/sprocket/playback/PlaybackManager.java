@@ -48,6 +48,8 @@ class PlaybackManager implements Playback.Callback {
 
   static final String CUSTOM_ACTION_REPEAT = "com.awsomefox.sprocket.REPEAT";
   static final String CUSTOM_ACTION_SHUFFLE = "com.awsomefox.sprocket.SHUFFLE";
+  static final String CUSTOM_ACTION_SPEED = "com.awsomefox.sprocket.SPEED";
+  static final String BUNDLE_SPEED_KEY = "com.awsomefox.sprocket.SPEED_KEY";
 
   private final QueueManager queueManager;
   private final MediaSessionCallback sessionCallback;
@@ -96,9 +98,12 @@ class PlaybackManager implements Playback.Callback {
 
   void updatePlaybackState() {
     long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
+    float speed = 1.0f;
     if (playback != null && playback.isConnected()) {
       position = playback.getCurrentStreamPosition();
+      speed = playback.getSpeed();
     }
+//    float speed = playback.getSpeed();
 
     PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
         .setActions(getAvailableActions());
@@ -106,7 +111,7 @@ class PlaybackManager implements Playback.Callback {
     addCustomActions(stateBuilder);
 
     @State int state = playback.getState();
-    stateBuilder.setState(state, position, 1.0f, androidClock.elapsedRealTime());
+    stateBuilder.setState(state, position, speed, androidClock.elapsedRealTime());
 
     serviceCallback.onPlaybackStateUpdated(stateBuilder.build());
 
@@ -124,7 +129,6 @@ class PlaybackManager implements Playback.Callback {
     } else {
       stateBuilder.addCustomAction(CUSTOM_ACTION_SHUFFLE, "Shuffle", R.drawable.ic_shuffle_off);
     }
-
     if (repeatMode == QueueManager.REPEAT_OFF) {
       stateBuilder.addCustomAction(CUSTOM_ACTION_REPEAT, "Repeat", R.drawable.ic_repeat_all);
     } else if (repeatMode == QueueManager.REPEAT_ALL) {
@@ -132,6 +136,7 @@ class PlaybackManager implements Playback.Callback {
     } else {
       stateBuilder.addCustomAction(CUSTOM_ACTION_REPEAT, "Repeat", R.drawable.ic_repeat_off);
     }
+//    stateBuilder.addCustomAction(CUSTOM_ACTION_SPEED, "Speed", R.drawable.ic_repeat_off);
   }
 
   private long getAvailableActions() {
@@ -178,7 +183,7 @@ class PlaybackManager implements Playback.Callback {
         resumePlaying);
     // Suspend the current one
     @State int oldState = playback.getState();
-    int position = playback.getCurrentStreamPosition();
+    long position = playback.getCurrentStreamPosition();
     Track currentMediaId = playback.getCurrentTrack();
     playback.stop(false);
     newPlayback.setCallback(this);
@@ -274,6 +279,11 @@ class PlaybackManager implements Playback.Callback {
           break;
         case CUSTOM_ACTION_SHUFFLE:
           queueManager.shuffle();
+          break;
+        case CUSTOM_ACTION_SPEED:
+          float newSpeed = extras.getFloat(BUNDLE_SPEED_KEY);
+          playback.setSpeed(newSpeed);
+          updatePlaybackState();
           break;
         default:
       }

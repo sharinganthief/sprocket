@@ -27,21 +27,21 @@ import android.view.ViewGroup;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.awsomefox.sprocket.R;
+import com.awsomefox.sprocket.SprocketApp;
+import com.awsomefox.sprocket.data.LoginManager;
+import com.awsomefox.sprocket.playback.MediaController;
+import com.awsomefox.sprocket.playback.MusicService;
 import com.bluelinelabs.conductor.Conductor;
 import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
-import com.awsomefox.sprocket.data.LoginManager;
-import com.awsomefox.sprocket.playback.MusicController;
-import com.awsomefox.sprocket.playback.MusicService;
-
-import com.awsomefox.sprocket.SprocketApp;
-import com.awsomefox.sprocket.R;
 
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import timber.log.Timber;
 
 public class SprocketActivity extends AppCompatActivity {
 
@@ -50,7 +50,7 @@ public class SprocketActivity extends AppCompatActivity {
   @Inject
   LoginManager loginManager;
   @Inject
-  MusicController musicController;
+  MediaController mediaController;
   private Router router;
   private boolean bound;
 
@@ -65,27 +65,33 @@ public class SprocketActivity extends AppCompatActivity {
   };
 
   @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
+      Timber.d("onCreate");
     super.onCreate(savedInstanceState);
     SprocketApp.get(this).component().inject(this);
     setContentView(R.layout.activity_klingar);
     ButterKnife.bind(this);
 
     router = Conductor.attachRouter(this, container, savedInstanceState);
-    if (savedInstanceState == null) {
-      if (loginManager.isLoggedOut()) {
-        router.setRoot(RouterTransaction.with(new LoginController(null)));
+      if (savedInstanceState == null) {
+          if (loginManager.isLoggedOut()) {
+              router.setRoot(RouterTransaction.with(new LoginController(null)));
+          } else {
+//        Timber.d(savedInstanceState.getString("tets"));
+              router.setRoot(RouterTransaction.with(new BrowserController(null)));
+          }
       } else {
-        router.setRoot(RouterTransaction.with(new BrowserController(null)));
+          Timber.d(savedInstanceState.getString("tets"));
       }
-    }
   }
 
   @Override protected void onStart() {
+      Timber.d("onStart");
     super.onStart();
     bindService(new Intent(this, MusicService.class), connection, Context.BIND_AUTO_CREATE);
   }
 
   @Override protected void onStop() {
+      Timber.d("onStop");
     super.onStop();
     if (bound) {
       unbindService(connection);
@@ -120,7 +126,7 @@ public class SprocketActivity extends AppCompatActivity {
   }
 
   private void logout() {
-    musicController.stop();
+      mediaController.stop();
     loginManager.logout();
     router.setRoot(RouterTransaction.with(new LoginController(null)));
   }

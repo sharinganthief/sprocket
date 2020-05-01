@@ -21,15 +21,14 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.awsomefox.sprocket.R;
 import com.awsomefox.sprocket.data.Type;
-import com.awsomefox.sprocket.data.model.Album;
-import com.awsomefox.sprocket.data.model.Artist;
+import com.awsomefox.sprocket.data.model.Author;
+import com.awsomefox.sprocket.data.model.Book;
 import com.awsomefox.sprocket.data.model.Header;
 import com.awsomefox.sprocket.data.model.MediaType;
 import com.awsomefox.sprocket.data.model.PlexItem;
 import com.awsomefox.sprocket.data.model.Track;
-
-import com.awsomefox.sprocket.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +47,9 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
   public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     LayoutInflater inflater = LayoutInflater.from(parent.getContext());
     if (viewType == Type.ARTIST) {
-      return new ArtistViewHolder(inflater.inflate(R.layout.item_artist, parent, false), this);
+      return new AuthorViewHolder(inflater.inflate(R.layout.item_artist, parent, false), this);
     } else if (viewType == Type.ALBUM) {
-      return new AlbumViewHolder(inflater.inflate(R.layout.item_album, parent, false), this);
+      return new BookViewHolder(inflater.inflate(R.layout.item_album, parent, false), this);
     } else if (viewType == Type.TRACK) {
       return new TrackViewHolder(inflater.inflate(R.layout.item_track, parent, false), this);
     } else if (viewType == Type.MEDIA_TYPE) {
@@ -65,10 +64,10 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     Object item = items.get(position);
     switch (getItemViewType(position)) {
       case Type.ARTIST:
-        ((ArtistViewHolder) holder).bindModel((Artist) item);
+        ((AuthorViewHolder) holder).bindModel((Author) item);
         break;
       case Type.ALBUM:
-        ((AlbumViewHolder) holder).bindModel((Album) item);
+        ((BookViewHolder) holder).bindModel((Book) item);
         break;
       case Type.TRACK:
         ((TrackViewHolder) holder).bindModel((Track) item);
@@ -89,9 +88,9 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
   @Override public int getItemViewType(int position) {
     PlexItem item = items.get(position);
-    if (item instanceof Artist) {
+    if (item instanceof Author) {
       return Type.ARTIST;
-    } else if (item instanceof Album) {
+    } else if (item instanceof Book) {
       return Type.ALBUM;
     } else if (item instanceof Track) {
       return Type.TRACK;

@@ -43,71 +43,71 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MusicControllerTest {
+public class MediaControllerTest {
 
   @Mock MediaControllerCompat mockMediaController;
   @Mock TransportControls mockTransportControls;
   @Mock PlaybackStateCompat mockPlaybackState;
-  private MusicController musicController;
+    private MediaController mediaController;
 
   @Before public void setup() {
-    musicController = new MusicController(seconds(), Rx.test());
-    musicController.setMediaController(mockMediaController);
+      mediaController = new MediaController(seconds(), Rx.test());
+      mediaController.setMediaController(mockMediaController);
     when(mockMediaController.getTransportControls()).thenReturn(mockTransportControls);
     when(mockMediaController.getPlaybackState()).thenReturn(mockPlaybackState);
   }
 
   @Test public void play() {
-    musicController.play();
+      mediaController.play();
     verify(mockTransportControls, times(1)).play();
   }
 
   @Test public void pause() {
-    musicController.pause();
+      mediaController.pause();
     verify(mockTransportControls, times(1)).pause();
   }
 
   @Test public void togglePlayToPause() {
     when(mockPlaybackState.getState()).thenReturn(STATE_PLAYING);
-    musicController.playPause();
+      mediaController.playPause();
     verify(mockTransportControls, times(1)).pause();
     verify(mockTransportControls, never()).play();
   }
 
   @Test public void togglePauseToPlay() {
     when(mockPlaybackState.getState()).thenReturn(STATE_PAUSED);
-    musicController.playPause();
+      mediaController.playPause();
     verify(mockTransportControls, times(1)).play();
     verify(mockTransportControls, never()).pause();
   }
 
   @Test public void playQueueItem() {
-    musicController.playQueueItem(1337);
+      mediaController.playQueueItem(1337);
     verify(mockTransportControls, times(1)).skipToQueueItem(1337);
   }
 
   @Test public void seekTo() {
-    musicController.seekTo(10000L);
+      mediaController.seekTo(10000L);
     verify(mockTransportControls, times(1)).seekTo(10000L);
   }
 
   @Test public void next() {
-    musicController.next();
+      mediaController.next();
     verify(mockTransportControls, times(1)).skipToNext();
   }
 
   @Test public void previous() {
-    musicController.previous();
+      mediaController.previous();
     verify(mockTransportControls, times(1)).skipToPrevious();
   }
 
   @Test public void shuffle() {
-    musicController.shuffle();
+      mediaController.shuffle();
     verify(mockTransportControls, times(1)).sendCustomAction(PlaybackManager.CUSTOM_ACTION_SHUFFLE, null);
   }
 
   @Test public void repeat() {
-    musicController.repeat();
+      mediaController.repeat();
     verify(mockTransportControls, times(1)).sendCustomAction(PlaybackManager.CUSTOM_ACTION_REPEAT, null);
   }
 
@@ -127,9 +127,9 @@ public class MusicControllerTest {
       return callback;
     }).when(mockMediaController).registerCallback(any(Callback.class));
 
-    TestSubscriber<Integer> test = musicController.state().take(4).test();
+      TestSubscriber<Integer> test = mediaController.state().take(4).test();
 
-    musicController.setMediaController(mockMediaController);
+      mediaController.setMediaController(mockMediaController);
 
     test.awaitTerminalEvent();
     test.assertValues(STATE_NONE, STATE_BUFFERING, STATE_PLAYING, STATE_PAUSED);
@@ -144,9 +144,9 @@ public class MusicControllerTest {
       return callback;
     }).when(mockMediaController).registerCallback(any(Callback.class));
 
-    TestSubscriber<Long> test = musicController.progress().take(5).test();
+      TestSubscriber<Long> test = mediaController.progress().take(5).test();
 
-    musicController.setMediaController(mockMediaController);
+      mediaController.setMediaController(mockMediaController);
 
     test.awaitTerminalEvent();
     test.assertValues(0L, 0L, 1000L, 2000L, 3000L);

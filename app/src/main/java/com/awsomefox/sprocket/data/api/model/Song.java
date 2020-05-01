@@ -31,6 +31,10 @@ public final class Song {
   @Attribute(required = false) public String thumb;
   @Attribute(required = false) public int index;
   @Attribute(required = false) public long duration;
+    @Attribute(required = false)
+    public long viewOffset;
+    @Attribute(required = false)
+    public long viewCount;
   @Element public Media media;
 
   @Root(strict = false)

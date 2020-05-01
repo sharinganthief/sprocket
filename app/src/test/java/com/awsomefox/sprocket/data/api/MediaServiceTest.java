@@ -74,8 +74,9 @@ public class MediaServiceTest {
         "&X-Plex-Container-Size=50&type=mediaKey&X-Plex-Container-Start=100&X-Plex-Token=token"));
   }
 
-  @Test public void recentArtists() {
-    media.recentArtists(URL, "libKey");
+    @Test
+    public void recentAuthors() {
+        media.recentAuthors(URL, "libKey");
     assertThat(api.actual, is("https://plex.tv/library/sections/libKey/all?viewCount%3E=1&type=8" +
         "&sort=lastViewedAt:desc&X-Plex-Token=token"));
   }

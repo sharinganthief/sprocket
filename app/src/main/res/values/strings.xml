@@ -3,6 +3,10 @@
 
     <string name="app_name">Klingar</string>
 
+    <string name="books">Books</string>
+    <string name="authors">Authors</string>
+    <string name="bookmarks">Bookmarks</string>
+
     <string name="menu_media_route">Play on…</string>
     <string name="menu_licenses">Open source licenses</string>
     <string name="menu_sign_out">Sign out</string>
@@ -14,19 +18,18 @@
     <string name="sign_in_failed">Sign in failed</string>
 
     <string name="action_queue_track">Queue</string>
+    <string name="action_change_speed">Change Playback Speed</string>
 
     <string name="description_logo">Klingar logo</string>
     <string name="description_queue">Show playing queue</string>
+    <string name="description_speed">Change now playing speed</string>
     <string name="description_track">Show album cover</string>
-    <string name="description_shuffle_off">Shuffle off</string>
-    <string name="description_shuffle_all">Shuffle all</string>
+    <string name="description_skip_forward">Skip forward</string>
     <string name="description_previous">Previous track</string>
     <string name="description_play">Play</string>
     <string name="description_pause">Pause</string>
     <string name="description_next">Next track</string>
-    <string name="description_repeat_off">Repeat off</string>
-    <string name="description_repeat_all">Repeat all</string>
-    <string name="description_repeat_one">Repeat one</string>
+    <string name="description_skip_back">Skip Back</string>
 
     <string name="label_previous">Previous</string>
     <string name="label_pause">Pause</string>
@@ -37,5 +40,8 @@
 
     <string name="notification_channel">Klingar_Channel_ID</string>
     <string name="notification_channel_description">Channel ID for Klingar</string>
+    <string name="now_playing_speed_text">Now Playing Speed:</string>
+
+    <string name="chapter_title">Chapter %d</string>
 
 </resources>

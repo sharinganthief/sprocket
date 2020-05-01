@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/queue_track"
+    android:id="@+id/speed"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="?android:selectableItemBackgroundBorderless"
-    android:contentDescription="@string/description_queue"
+    android:contentDescription="@string/description_speed"
     android:padding="5dp"
     android:scaleType="fitCenter"
-    app:srcCompat="@drawable/player_queue_track" />
+    app:srcCompat="@drawable/player_speed" />

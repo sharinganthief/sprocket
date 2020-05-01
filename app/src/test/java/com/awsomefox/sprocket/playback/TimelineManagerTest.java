@@ -52,17 +52,18 @@ public class TimelineManagerTest {
   @NonNull private static final HttpUrl TEST_URL =
       Objects.requireNonNull(HttpUrl.parse("https://plex.tv"));
 
-  @Mock MusicController mockMusicController;
+    @Mock
+    MediaController mockMediaController;
   @Mock QueueManager mockQueueManager;
   @Mock
   MediaService mockMedia;
   private TimelineManager timelineManager;
 
   @Before public void setup() {
-    timelineManager = new TimelineManager(mockMusicController, mockQueueManager, mockMedia,
+      timelineManager = new TimelineManager(mockMediaController, mockQueueManager, mockMedia,
         Rx.test());
-    when(mockMusicController.progress()).thenReturn(testProgress());
-    when(mockMusicController.state()).thenReturn(testState());
+      when(mockMediaController.progress()).thenReturn(testProgress());
+      when(mockMediaController.state()).thenReturn(testState());
     when(mockQueueManager.queue()).thenReturn(testQueue());
   }
 

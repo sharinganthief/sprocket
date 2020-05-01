@@ -21,7 +21,7 @@ import com.awsomefox.sprocket.util.Rx;
 
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.CompositeDisposable;
 import timber.log.Timber;
 
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED;
@@ -33,28 +33,30 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED
  */
 class TimelineManager {
 
-  private final MusicController musicController;
+  private final MediaController mediaController;
   private final QueueManager queueManager;
   private final MediaService media;
   private final Rx rx;
-  private Disposable disposable;
+  private CompositeDisposable disposables;
 
-  TimelineManager(MusicController musicController, QueueManager queueManager, MediaService media,
+  TimelineManager(MediaController mediaController, QueueManager queueManager, MediaService media,
                   Rx rx) {
-    this.musicController = musicController;
+    this.mediaController = mediaController;
     this.queueManager = queueManager;
     this.media = media;
     this.rx = rx;
+    disposables = new CompositeDisposable();
   }
 
   void start() {
-    disposable = Flowable.combineLatest(state(), currentTrack(), progress(),
+
+    disposables.add(Flowable.combineLatest(state(), currentTrack(), progress(),
         (state, track, time) -> new Timeline(state, time, track))
         .observeOn(rx.io())
         .flatMapCompletable(this::updateTimeline)
         .subscribeOn(rx.io())
         .observeOn(rx.io())
-        .subscribe(() -> Timber.d("onCompleted"), Rx::onError);
+            .subscribe(() -> Timber.d("onCompleted"), Rx::onError));
   }
 
   private Completable updateTimeline(Timeline t) {
@@ -64,8 +66,8 @@ class TimelineManager {
   }
 
   private Flowable<Long> progress() {
-    return musicController.progress()
-        .filter(progress -> (progress % 10000) == 0);  // Send updates every 10 seconds
+    return mediaController.progress()
+            .filter(progress -> (progress % 5000) == 0);  // Send updates every 10 seconds but not exact
   }
 
   private Flowable<Track> currentTrack() {
@@ -75,7 +77,8 @@ class TimelineManager {
   }
 
   private Flowable<String> state() {
-    return musicController.state()
+    Timber.d("TIMELINE STATE");
+    return mediaController.state()
         .filter(state -> state == STATE_PLAYING || state == STATE_PAUSED || state == STATE_STOPPED)
         .map(state -> {
           if (state == STATE_PLAYING) {
@@ -88,7 +91,7 @@ class TimelineManager {
   }
 
   void stop() {
-    Rx.dispose(disposable);
+    Rx.dispose(disposables);
   }
 
   private static class Timeline {

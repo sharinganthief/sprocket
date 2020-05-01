@@ -10,4 +10,10 @@
         app:actionLayout="@layout/action_queue_track"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_change_speed"
+        android:title="@string/action_change_speed"
+        app:actionLayout="@layout/action_change_speed"
+        app:showAsAction="always" />
+
 </menu>
