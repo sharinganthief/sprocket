@@ -40,7 +40,7 @@ android {
         minSdkVersion versions.min_sdk
         targetSdkVersion versions.target_sdk
         versionCode 1105
-        versionName '0.13'
+        versionName '0.2.0'
         buildConfigField 'String', 'CAST_APP_ID', '\"ACB4E805\"'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }

@@ -70,7 +70,7 @@ class TimelineManager {
           currentTrack = t.track;
       }
       //if new chapter playing scrobble the previous track to make sure it is marked as completed
-      if (!currentTrack.ratingKey().equals(t.track.ratingKey())) {
+      if (!currentTrack.ratingKey().equals(t.track.ratingKey()) && currentTrack.albumTitle().equals(t.track.albumTitle())) {
           Completable result = media.scrobble(currentTrack.uri(), currentTrack.ratingKey());
           currentTrack = t.track;
           Timber.d("Scrobling previous track");

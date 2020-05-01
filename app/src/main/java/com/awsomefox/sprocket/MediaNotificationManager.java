@@ -49,6 +49,8 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import java.util.Locale;
+
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
@@ -244,8 +246,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOnlyAlertOnce(true)
                 .setContentIntent(createContentIntent())
-                .setContentTitle(currentTrack.title())
-                .setContentText(currentTrack.artistTitle());
+                .setContentTitle(String.format(Locale.US, "Chapter %d", currentTrack.index()))
+                .setContentText(currentTrack.albumTitle());
 
         String castName = mediaController.getCastName();
         if (castName != null) {
