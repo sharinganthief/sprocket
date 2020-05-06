@@ -68,18 +68,7 @@ class TimelineManager {
     }
 
     private Completable updateTimeline(Timeline t) {
-        //if no track set the current track to the timeline track
-        if (currentTrackedProgress > t.time) {
-            currentTrackedProgress = 0;
-        }
-        if (t.time - currentTrackedProgress < 10000) {
-            return Completable.complete();
-        }
-        preferences.edit().putLong("trackProgress", t.time).apply();
-        if (currentTrack == null) {
-            currentTrack = t.track;
-        }
-        //if new chapter playing scrobble the previous track to make sure it is marked as completed
+        //scrobble the previous chapter if skipping to next
         if (!currentTrack.ratingKey().equals(t.track.ratingKey())) {
             currentTrackedProgress = 0L;
             if (currentTrack.albumTitle().equals(t.track.albumTitle())) {
@@ -89,6 +78,20 @@ class TimelineManager {
             }
             currentTrack = t.track;
         }
+        //if the current track progress has somehow getten ahead of the real progress reset
+        if (currentTrackedProgress > t.time) {
+            currentTrackedProgress = 0;
+        }
+        //wait 10 seconds to send an update
+        if (t.time - currentTrackedProgress < 10000) {
+            return Completable.complete();
+        }
+        //update the local stored progress and current track
+        preferences.edit().putLong("trackProgress", t.time).apply();
+        if (currentTrack == null) {
+            currentTrack = t.track;
+        }
+
         //update track location to plex
         currentTrackedProgress = t.time;
         Timber.d("Sending progress update at %s", DateUtils.formatElapsedTime(currentTrackedProgress / 1000));
