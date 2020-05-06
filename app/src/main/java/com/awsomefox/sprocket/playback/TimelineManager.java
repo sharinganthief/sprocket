@@ -69,6 +69,12 @@ class TimelineManager {
 
     private Completable updateTimeline(Timeline t) {
         //if no track set the current track to the timeline track
+        if (currentTrackedProgress > t.time) {
+            currentTrackedProgress = 0;
+        }
+        if (t.time - currentTrackedProgress < 10000) {
+            return Completable.complete();
+        }
         preferences.edit().putLong("trackProgress", t.time).apply();
         if (currentTrack == null) {
             currentTrack = t.track;
@@ -78,10 +84,10 @@ class TimelineManager {
             currentTrackedProgress = 0L;
             if (currentTrack.albumTitle().equals(t.track.albumTitle())) {
                 Completable result = media.scrobble(currentTrack.uri(), currentTrack.ratingKey());
-                currentTrack = t.track;
                 Timber.d("Scrobling previous track");
                 return result;
             }
+            currentTrack = t.track;
         }
         //update track location to plex
         currentTrackedProgress = t.time;
@@ -92,8 +98,7 @@ class TimelineManager {
     }
 
     private Flowable<Long> progress() {
-        return mediaController.progress()
-                .filter(progress -> (progress - currentTrackedProgress) > 10000);  // Send updates every 10 seconds playtime
+        return mediaController.progress();  // Send updates every 10 seconds playtime
     }
 
     private Flowable<Track> currentTrack() {
