@@ -39,10 +39,10 @@ android {
         applicationId 'com.awsomefox.sprocket'
         minSdkVersion versions.min_sdk
         targetSdkVersion versions.target_sdk
-        versionCode 1105
+        versionCode 1106
         versionName '0.2.0'
         buildConfigField 'String', 'CAST_APP_ID', '\"ACB4E805\"'
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        testInstrumentationRunner 'andrroidx.test.runner.AndroidJUnitRunner'
     }
     signingConfigs {
         release {
@@ -54,9 +54,9 @@ android {
     }
     buildTypes {
         debug {
-            minifyEnabled true
+            minifyEnabled false
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
             minifyEnabled true

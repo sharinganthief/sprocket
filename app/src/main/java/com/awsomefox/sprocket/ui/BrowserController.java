@@ -176,20 +176,7 @@ public class BrowserController extends BaseMediaController implements
         }
         observePlayback();
 
-        if (mediaController.getPlaybackState() == null || (mediaController.getPlaybackState().getState() == PlaybackStateCompat.STATE_NONE)) {
-            Timber.d("Restoring state");
-            Track track = getPersistedTrack();
-            disposables.add(musicRepository.createPlayQueue(track)
-                    .compose(bindUntilEvent(DETACH))
-                    .compose(rx.singleSchedulers())
-                    .subscribe(pair -> {
-                        //restore playing
-                        queueManager.setQueue(pair.first, pair.second, getPersistedProgress());
-                        updateSpeed(preferences.getFloat(PlayerController.SPEED, 1.0f));
-                        mediaController.play();
-                        mediaController.pause();
-                    }, Rx::onError));
-        }
+
     }
 
     @Override
@@ -291,7 +278,7 @@ public class BrowserController extends BaseMediaController implements
         }
         swipeRefreshLayout.setRefreshing(true);
         isLoading = true;
-        disposables.add(musicRepository.browseMediaType(mediaType, PAGE_SIZE * currentPage)
+        disposables.add(musicRepository.browseMediaType(mediaType, PAGE_SIZE * currentPage, 50)
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.singleSchedulers())
                 .subscribe(items -> {

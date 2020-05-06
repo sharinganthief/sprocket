@@ -27,6 +27,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -66,7 +67,15 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
     private static final int[] PAUSE = {R.attr.state_pause};
     private static final int[] QUEUE = {-R.attr.state_track};
     private static final int[] TRACK = {R.attr.state_track};
-    public static final String SPEED = "speed";
+    public static final String SPEED = "com.awsomefox.sprocket.speed";
+    public static final String CUSTOM_ACTION_SPEED = "com.awsomefox.sprocket.SPEED";
+    public static final String CUSTOM_ACTION_BACK = "com.awsomefox.sprocket.BACK";
+    public static final String CUSTOM_ACTION_FORWARD = "com.awsomefox.sprocket.FORWARD";
+    public static final String BUNDLE_AUTO = "com.awsomefox.sprocket.auto";
+    public static final String BUNDLE_TRACK_URI = "com.awsomefox.sprocket.trackUri";
+    public static final String BUNDLE_TRACK_KEY = "com.awsomefox.sprocket.trackKey";
+    public static final String BUNDLE_TRACK_PARENT_KEY = "com.awsomefox.sprocket.trackParentKey";
+    public static final String BUNDLE_TRACK_LIBRARY_ID = "com.awsomefox.sprocket.trackLibraryId";
     private final QueueAdapter queueAdapter;
     @BindView(R.id.content_loading)
     ContentLoadingProgressBar contentLoading;
@@ -219,7 +228,7 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
             SeekBar speedBar = dialog.findViewById(R.id.speed_seek_bar);
             TextView speedValue = dialog.findViewById(R.id.speed_value);
             Objects.requireNonNull(speedValue).setText(String.valueOf(mediaController.getSpeed()));
-            Objects.requireNonNull(speedBar).setProgress((int) mediaController.getSpeed() * 10 - 5);
+            Objects.requireNonNull(speedBar).setProgress((int) (mediaController.getSpeed() * 10 - 5));
             speedBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar speedBar, int newSpeed, boolean fromUser) {
@@ -244,6 +253,23 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
                     speedValue.setText(String.valueOf(speed));
                     preferences.edit().putFloat(SPEED, speed).apply();
                 }
+            });
+
+            Button lowerButton = dialog.findViewById(R.id.lower);
+            Button higherButton = dialog.findViewById(R.id.higher);
+            Objects.requireNonNull(lowerButton).setOnClickListener(v -> {
+                updateSpeed(mediaController.getSpeed() - .1f);
+                mediaController.updatePlaySpeed();
+                speedValue.setText(String.valueOf(queueManager.getSpeed()));
+                preferences.edit().putFloat(SPEED, queueManager.getSpeed()).apply();
+                Objects.requireNonNull(speedBar).setProgress((int) (mediaController.getSpeed() * 10 - 5));
+            });
+            Objects.requireNonNull(higherButton).setOnClickListener(v -> {
+                updateSpeed(mediaController.getSpeed() + .1f);
+                mediaController.updatePlaySpeed();
+                speedValue.setText(String.valueOf(queueManager.getSpeed()));
+                preferences.edit().putFloat(SPEED, queueManager.getSpeed()).apply();
+                Objects.requireNonNull(speedBar).setProgress((int) (mediaController.getSpeed() * 10 - 5));
             });
         });
 
@@ -302,7 +328,7 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
                 .subscribe(progress -> {
                     if (!isSeeking) {
                         seekBar.setProgress((int) (progress / 1000));
-                        persistProgress(progress);
+//                        persistProgress(progress);
                     }
                 }, Rx::onError));
 

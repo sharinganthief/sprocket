@@ -32,11 +32,15 @@ import okhttp3.HttpUrl;
 public interface MusicRepository {
     Single<List<PlexItem>> browseLibrary(Library lib);
 
-    Single<List<PlexItem>> browseMediaType(MediaType mediaType, int offset);
+    Single<List<PlexItem>> browseMediaType(MediaType mediaType, int page, Integer pageSize);
 
     Single<List<PlexItem>> artistItems(Author artist);
 
     Single<List<PlexItem>> albumItems(Book album);
+
+    Single<List<PlexItem>> chaptersInProgress(Library lib);
+
+    Single<List<PlexItem>> booksInProgress(Library lib);
 
     Single<Pair<List<Track>, Long>> createPlayQueue(Track track);
 
