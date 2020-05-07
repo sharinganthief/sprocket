@@ -61,7 +61,7 @@ abstract class BaseMediaController extends BaseController {
     @NonNull
     protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
         View view = super.onCreateView(inflater, container);
-        preferences = Objects.requireNonNull(getActivity()).getPreferences(Context.MODE_PRIVATE);
+        preferences = Objects.requireNonNull(getActivity()).getSharedPreferences("playback-state", Context.MODE_PRIVATE);
         return view;
     }
 
@@ -120,7 +120,7 @@ abstract class BaseMediaController extends BaseController {
 
     void updateSpeed(float speed) {
         queueManager.setSpeed(speed);
-        mediaController.setSpeed(speed);
+        mediaController.setSpeed(queueManager.getSpeed());
     }
 
     void persistCurrentTrack(Track track) {

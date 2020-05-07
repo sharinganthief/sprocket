@@ -291,7 +291,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private void setNotificationPlaybackState(NotificationCompat.Builder builder) {
         PlaybackStateCompat playbackState = mediaController.getPlaybackState();
-        if (playbackState == null) {
+        if (playbackState == null || playbackState.getState() == STATE_STOPPED || playbackState.getState() == STATE_NONE || playbackState.getState() == PlaybackStateCompat.STATE_PAUSED) {
             musicService.stopForeground(false);
             return;
         }

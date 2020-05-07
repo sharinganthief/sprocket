@@ -12,12 +12,13 @@ Currently supports
 * Playback speed control. 
 * Local Playback
 * Cast Playback
+* Android Auto support
+* Android Wear support (I don't have a watch to test but should be working)
 
 In the future
-* Android Auto support
 * Downloads
 * Offline Playback
-* Android Wear support
+(Currently very heavily reliant on a connection to Plex)
 
 <a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/login.png" height="400" width="200" ></a>
 <a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/now_playing.png" height="400" width="200" ></a>

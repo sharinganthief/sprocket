@@ -76,11 +76,8 @@ public class SprocketActivity extends AppCompatActivity {
           if (loginManager.isLoggedOut()) {
               router.setRoot(RouterTransaction.with(new LoginController(null)));
           } else {
-//        Timber.d(savedInstanceState.getString("tets"));
               router.setRoot(RouterTransaction.with(new BrowserController(null)));
           }
-      } else {
-          Timber.d(savedInstanceState.getString("tets"));
       }
   }
 

@@ -38,6 +38,7 @@ public class CastOptionsProvider implements OptionsProvider {
         return new CastOptions.Builder()
                 .setReceiverApplicationId(BuildConfig.CAST_APP_ID)
                 .setCastMediaOptions(mediaOptions)
+                .setEnableReconnectionService(false)
                 .build();
     }
 

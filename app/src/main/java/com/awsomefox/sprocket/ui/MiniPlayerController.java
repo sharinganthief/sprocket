@@ -91,10 +91,10 @@ public class MiniPlayerController extends BaseMediaController {
     }
 
     private void observePlaybackState() {
-        disposables.add(mediaController.progress()
-                .compose(bindUntilEvent(DETACH))
-                .compose(rx.flowableSchedulers())
-                .subscribe(this::persistProgress, Rx::onError));
+//        disposables.add(mediaController.progress()
+//                .compose(bindUntilEvent(DETACH))
+//                .compose(rx.flowableSchedulers())
+//                .subscribe(this::persistProgress, Rx::onError));
         disposables.add(mediaController.state()
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.flowableSchedulers())

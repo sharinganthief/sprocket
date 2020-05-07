@@ -16,7 +16,9 @@
  */
 package com.awsomefox.sprocket.playback;
 
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -27,9 +29,16 @@ import androidx.annotation.NonNull;
 import com.awsomefox.sprocket.AndroidClock;
 import com.awsomefox.sprocket.R;
 import com.awsomefox.sprocket.data.model.Track;
+import com.awsomefox.sprocket.util.Strings;
+import com.awsomefox.sprocket.util.Urls;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import okhttp3.HttpUrl;
 import timber.log.Timber;
 
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERING;
@@ -44,10 +53,17 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPIN
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED;
+import static com.awsomefox.sprocket.ui.PlayerController.BUNDLE_AUTO;
+import static com.awsomefox.sprocket.ui.PlayerController.BUNDLE_TRACK_KEY;
+import static com.awsomefox.sprocket.ui.PlayerController.BUNDLE_TRACK_LIBRARY_ID;
+import static com.awsomefox.sprocket.ui.PlayerController.BUNDLE_TRACK_PARENT_KEY;
+import static com.awsomefox.sprocket.ui.PlayerController.BUNDLE_TRACK_URI;
+import static com.awsomefox.sprocket.ui.PlayerController.CUSTOM_ACTION_BACK;
+import static com.awsomefox.sprocket.ui.PlayerController.CUSTOM_ACTION_FORWARD;
+import static com.awsomefox.sprocket.ui.PlayerController.CUSTOM_ACTION_SPEED;
+import static com.awsomefox.sprocket.ui.PlayerController.SPEED;
 
 class PlaybackManager implements Playback.Callback {
-    static final String CUSTOM_ACTION_SPEED = "com.awsomefox.sprocket.SPEED";
-    static final String BUNDLE_SPEED_KEY = "com.awsomefox.sprocket.SPEED_KEY";
 
     private final QueueManager queueManager;
     private final MediaSessionCallback sessionCallback;
@@ -81,10 +97,14 @@ class PlaybackManager implements Playback.Callback {
         }
     }
 
+    private void handlePlayRequest(Track track, float speed) {
+        serviceCallback.onPlaybackStart(track, speed);
+    }
+
     private void handlePauseRequest() {
         if (playback.isPlaying()) {
             playback.pause(queueManager.getSpeed());
-            serviceCallback.onPlaybackStop();
+            serviceCallback.onPlaybackPause();
         }
     }
 
@@ -101,7 +121,6 @@ class PlaybackManager implements Playback.Callback {
             position = playback.getCurrentStreamPosition();
             speed = playback.getSpeed();
         }
-//    float speed = playback.getSpeed();
 
         PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(getAvailableActions());
@@ -111,37 +130,56 @@ class PlaybackManager implements Playback.Callback {
         @State int state = playback.getState();
         stateBuilder.setState(state, position, speed, androidClock.elapsedRealTime());
 
-        MediaMetadataCompat.Builder metadata = getMetadataBuilder();
+        serviceCallback.onPlaybackStateUpdated(stateBuilder.build(), getMetadataBuilder(playback.getCurrentTrack()).build(), getQueueList());
 
-        serviceCallback.onPlaybackStateUpdated(stateBuilder.build(), metadata.build());
 
         if (state == STATE_PLAYING || state == STATE_PAUSED) {
             serviceCallback.onNotificationRequired();
         }
     }
 
+    private List<MediaSessionCompat.QueueItem> getQueueList() {
+        List<MediaSessionCompat.QueueItem> upNext = new ArrayList<>();
+        for (Track track : queueManager.getUpNextQueue()) {
+            upNext.add(new MediaSessionCompat.QueueItem(getDescriptionBuilder(track).build(), track.queueItemId()));
+        }
+        return upNext;
+    }
+
     @NotNull
-    private MediaMetadataCompat.Builder getMetadataBuilder() {
+    private MediaMetadataCompat.Builder getMetadataBuilder(Track track) {
         MediaMetadataCompat.Builder metadata = new MediaMetadataCompat.Builder();
-        if (playback.getCurrentTrack() != null) {
-            metadata.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, playback.getCurrentTrack().artistTitle())
-                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, playback.getCurrentTrack().albumTitle())
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, playback.getCurrentTrack().title())
-                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, playback.getCurrentTrack().duration());
+        if (track != null) {
+            metadata.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, track.artistTitle())
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, track.albumTitle())
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, String.format(Locale.US, "Chapter %d", track.index()))
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, track.duration())
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, track.thumb());
         }
         return metadata;
     }
 
+    @NotNull
+    private MediaDescriptionCompat.Builder getDescriptionBuilder(Track track) {
+        MediaDescriptionCompat.Builder description = new MediaDescriptionCompat.Builder();
+        if (track != null) {
+            description.setIconUri(Uri.parse(Uri.decode(track.thumb())))
+                    .setTitle(String.format(Locale.US, "Chapter %d", track.index()))
+                    .setSubtitle(track.albumTitle());
+        }
+        return description;
+    }
+
     private void addCustomActions(PlaybackStateCompat.Builder stateBuilder) {
-        stateBuilder.addCustomAction(CUSTOM_ACTION_SPEED, "Speed", R.drawable.ic_repeat_off);
+        stateBuilder.addCustomAction(CUSTOM_ACTION_BACK, "Skip Back", R.drawable.skip_back);
+        stateBuilder.addCustomAction(CUSTOM_ACTION_FORWARD, "Skip Forward", R.drawable.skip_forward);
+        stateBuilder.addCustomAction(CUSTOM_ACTION_SPEED, "Speed Control", R.drawable.player_speed);
     }
 
     private long getAvailableActions() {
         long actions = PlaybackStateCompat.ACTION_PLAY_PAUSE
                 | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
-                | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
-                | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-                | PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
+                | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH;
         if (playback.isPlaying()) {
             actions |= PlaybackStateCompat.ACTION_PAUSE;
         } else {
@@ -224,11 +262,15 @@ class PlaybackManager implements Playback.Callback {
     interface PlaybackServiceCallback {
         void onPlaybackStart();
 
+        void onPlaybackStart(Track track, float speed);
+
+        void onPlaybackPause();
+
         void onPlaybackStop();
 
         void onNotificationRequired();
 
-        void onPlaybackStateUpdated(PlaybackStateCompat newState, MediaMetadataCompat metadataCompat);
+        void onPlaybackStateUpdated(PlaybackStateCompat newState, MediaMetadataCompat metadataCompat, List<MediaSessionCompat.QueueItem> queueItemList);
     }
 
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
@@ -236,6 +278,32 @@ class PlaybackManager implements Playback.Callback {
         public void onPlay() {
             Timber.d("onPlay");
             handlePlayRequest();
+        }
+
+        @Override
+        public void onPlayFromMediaId(String mediaId, Bundle extras) {
+            HttpUrl uri = HttpUrl.get(extras.getString(BUNDLE_TRACK_URI, "http://plex.com"));
+            String key = extras.getString(BUNDLE_TRACK_KEY, "1234");
+            String parentKey = extras.getString(BUNDLE_TRACK_PARENT_KEY, "1234");
+            String libraryId = extras.getString(BUNDLE_TRACK_LIBRARY_ID, "1234");
+            Track track = Track.builder().queueItemId(0)
+                    .libraryId(libraryId)
+                    .key(key)
+                    .ratingKey("track.ratingKey")
+                    .parentKey(parentKey)
+                    .title("track.title")
+                    .albumTitle("track.parentTitle")
+                    .artistTitle("track.grandparentTitle")
+                    .index(0)
+                    .duration(0L)
+                    .viewOffset(0L)
+                    .viewCount(1)
+                    .thumb(Strings.isBlank("track.thumb") ? null : Urls.addPathToUrl(uri, "track.thumb").toString())
+                    .source(Urls.addPathToUrl(uri, "track.media.part.key").toString())
+                    .uri(uri)
+                    .recent(true)
+                    .build();
+            handlePlayRequest(track, extras.getFloat(SPEED, 1.0f));
         }
 
         @Override
@@ -285,7 +353,20 @@ class PlaybackManager implements Playback.Callback {
         public void onCustomAction(String action, Bundle extras) {
             Timber.d("onCustomAction %s", action);
             if (CUSTOM_ACTION_SPEED.equals(action)) {
-                playback.setSpeed(queueManager.getSpeed());
+                //if not android auto set speed from queumanager
+                //if android auto increment the speed
+                if (!extras.getBoolean(BUNDLE_AUTO, true)) {
+                    playback.setSpeed(queueManager.getSpeed());
+                } else {
+                    queueManager.setSpeed(queueManager.getSpeed() + .1f);
+                    playback.setSpeed(queueManager.getSpeed());
+                }
+            }
+            if (CUSTOM_ACTION_BACK.equals(action)) {
+                onSeekTo(playback.getCurrentStreamPosition() - 30000);
+            }
+            if (CUSTOM_ACTION_FORWARD.equals(action)) {
+                onSeekTo(playback.getCurrentStreamPosition() + 30000);
             }
         }
     }
