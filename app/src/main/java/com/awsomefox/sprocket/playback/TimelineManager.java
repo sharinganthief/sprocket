@@ -56,6 +56,10 @@ class TimelineManager {
 
     }
 
+    void reset() {
+        currentTrackedProgress = 0L;
+    }
+
     void start() {
 
         disposables.add(Flowable.combineLatest(state(), currentTrack(), progress(),
@@ -68,30 +72,22 @@ class TimelineManager {
     }
 
     private Completable updateTimeline(Timeline t) {
-        //scrobble the previous chapter if skipping to next
-        if (!currentTrack.ratingKey().equals(t.track.ratingKey())) {
-            currentTrackedProgress = 0L;
-            if (currentTrack.albumTitle().equals(t.track.albumTitle())) {
-                Completable result = media.scrobble(currentTrack.uri(), currentTrack.ratingKey());
-                Timber.d("Scrobling previous track");
-                return result;
-            }
-            currentTrack = t.track;
-        }
-        //if the current track progress has somehow getten ahead of the real progress reset
-        if (currentTrackedProgress > t.time) {
-            currentTrackedProgress = 0;
-        }
-        //wait 10 seconds to send an update
-        if (t.time - currentTrackedProgress < 10000) {
-            return Completable.complete();
-        }
-        //update the local stored progress and current track
+        //if no track set the current track to the timeline track
         preferences.edit().putLong("trackProgress", t.time).apply();
         if (currentTrack == null) {
             currentTrack = t.track;
         }
-
+        //if new chapter playing scrobble the previous track to make sure it is marked as completed
+        if (!currentTrack.ratingKey().equals(t.track.ratingKey())) {
+            if (currentTrack.albumTitle().equals(t.track.albumTitle())) {
+                Completable result = media.scrobble(currentTrack.uri(), currentTrack.ratingKey());
+                currentTrack = t.track;
+                Timber.d("Scrobling previous track");
+                return result;
+            }
+            currentTrackedProgress = 0L;
+            currentTrack = t.track;
+        }
         //update track location to plex
         currentTrackedProgress = t.time;
         Timber.d("Sending progress update at %s", DateUtils.formatElapsedTime(currentTrackedProgress / 1000));
@@ -101,7 +97,8 @@ class TimelineManager {
     }
 
     private Flowable<Long> progress() {
-        return mediaController.progress();  // Send updates every 10 seconds playtime
+        return mediaController.progress()
+                .filter(progress -> (progress - currentTrackedProgress) > 10000);  // Send updates every 10 seconds playtime
     }
 
     private Flowable<Track> currentTrack() {

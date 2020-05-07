@@ -215,10 +215,10 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override
     public int onStartCommand(Intent startIntent, int flags, int startId) {
+        Timber.d("onStartCommand");
         if (startIntent != null) {
             if (ACTION_STOP_CASTING.equals(startIntent.getAction())) {
                 CastContext.getSharedInstance(this).getSessionManager().endCurrentSession(true);
-//        mediaNotificationManager.stopNotification();
                 onDestroy();
                 onCreate();
             } else {
@@ -226,15 +226,12 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
                 MediaButtonReceiver.handleIntent(session, startIntent);
             }
         }
-        // Reset the delay handler to enqueue a message to stop the service if nothing is playing
         delayedStopHandler.removeCallbacksAndMessages(null);
-//        delayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        Timber.d("onDestroy");
         // Service is being killed, so make sure we release our resources
         playbackManager.handleStopRequest();
         mediaNotificationManager.stopNotification();
@@ -254,6 +251,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override
     public void onPlaybackStart(Track track, float speed) {
+        timelineManager.reset();
         session.setActive(true);
 
         delayedStopHandler.removeCallbacksAndMessages(null);
@@ -275,6 +273,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override
     public void onPlaybackStart() {
+        timelineManager.reset();
         session.setActive(true);
 
         delayedStopHandler.removeCallbacksAndMessages(null);
@@ -288,6 +287,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override
     public void onPlaybackPause() {
+        timelineManager.reset();
         stopForeground(false);
     }
 
@@ -352,11 +352,9 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
         @Override
         public void onSessionEnded(CastSession castSession, int error) {
             Timber.d("onSessionEnded");
-            mediaController.setCastName(null);
-            Playback playback = new LocalPlayback(getApplicationContext(), mediaController, audioManager,
-                    wifiManager, client);
-            mediaRouter.setMediaSessionCompat(null);
-            playbackManager.switchToPlayback(playback, false);
+            Intent stopCastIntent = new Intent(getApplicationContext(), MusicService.class);
+            stopCastIntent.setAction(MusicService.ACTION_STOP_CASTING);
+            ContextCompat.startForegroundService(getInstance(), stopCastIntent);
         }
 
         @Override
