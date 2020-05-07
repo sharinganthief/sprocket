@@ -7,7 +7,6 @@ play {
     track = 'internal'
     resolutionStrategy = 'ignore'
     defaultToAppBundles = true
-    serviceAccountCredentials = rootProject.file('signing/play-account.json')
 }
 
 checkstyle {
@@ -44,25 +43,15 @@ android {
         buildConfigField 'String', 'CAST_APP_ID', '\"ACB4E805\"'
         testInstrumentationRunner 'andrroidx.test.runner.AndroidJUnitRunner'
     }
-    signingConfigs {
-        release {
-            storeFile rootProject.file('signing/app-upload.jks')
-            storePassword System.getenv('STORE_PASSWORD')
-            keyAlias System.getenv('KEY_ALIAS')
-            keyPassword System.getenv('KEY_PASSWORD')
-        }
-    }
     buildTypes {
         debug {
             minifyEnabled false
             shrinkResources false
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
     compileOptions {
