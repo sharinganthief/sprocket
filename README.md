@@ -19,3 +19,11 @@ In the future
 * Downloads
 * Offline Playback
 (Currently very heavily reliant on a connection to Plex)
+
+<a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/login.png" height="400" width="200" ></a>
+<a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/now_playing.png" height="400" width="200" ></a>
+<a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/browse_authors.png" height="400" width="200" ></a>
+
+<a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/browse_books.png" height="400" width="200" ></a>
+<a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/landing_screen.png" height="400" width="200" ></a>
+<a href="url"><img src="https://raw.github.com/AwsomeFox/sprocket/master/info/set_speed.png" height="400" width="200" ></a>
