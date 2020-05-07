@@ -73,6 +73,7 @@ public class BrowserController extends BaseMediaController implements
         AdapterView.OnItemSelectedListener {
 
     private static final int PAGE_SIZE = 50;
+    public static final String LIBRARY_PREFERENCE = "com.awsomefox.sprocket.selectedLibrary";
     private final MusicAdapter adapter;
     @BindView(R.id.toolbar_libs_spinner)
     Spinner toolbarSpinner;
@@ -232,6 +233,8 @@ public class BrowserController extends BaseMediaController implements
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.flowableSchedulers())
                 .subscribe(libs -> {
+                    String persistedLibrary =
+                            preferences.getString(LIBRARY_PREFERENCE, "1234");
                     BrowserController.this.libs = libs;
 
                     ArrayList<String> libNames = new ArrayList<>();
@@ -239,7 +242,7 @@ public class BrowserController extends BaseMediaController implements
                     for (int i = 0; i < libs.size(); ++i) {
                         Library lib = libs.get(i);
                         libNames.add(lib.name());
-                        if (lib.equals(currentLib)) {
+                        if (lib.equals(currentLib) || lib.uuid().equals(persistedLibrary)) {
                             currentPosition = i;
                         }
                     }
@@ -351,6 +354,7 @@ public class BrowserController extends BaseMediaController implements
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         if (position < libs.size()) {
+            preferences.edit().putString(LIBRARY_PREFERENCE, libs.get(position).uuid()).apply();
             browseLibrary(libs.get(position), false);
         }
     }

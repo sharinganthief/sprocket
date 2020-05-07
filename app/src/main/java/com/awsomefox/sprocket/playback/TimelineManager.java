@@ -22,6 +22,8 @@ import com.awsomefox.sprocket.data.api.MediaService;
 import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.util.Rx;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.CompositeDisposable;
@@ -41,8 +43,7 @@ class TimelineManager {
     private final MediaService media;
     private final Rx rx;
     private CompositeDisposable disposables;
-    private Track currentTrack;
-    private long currentTrackedProgress = 0L;
+    private AtomicLong currentTrackedProgress = new AtomicLong(0L);
     private SharedPreferences preferences;
 
     TimelineManager(MediaController mediaController, QueueManager queueManager, MediaService media,
@@ -57,10 +58,13 @@ class TimelineManager {
     }
 
     void reset() {
-        currentTrackedProgress = 0L;
+        currentTrackedProgress.set(0L);
+        stop();
+        disposables = new CompositeDisposable();
+        start();
     }
 
-    void start() {
+    private void start() {
 
         disposables.add(Flowable.combineLatest(state(), currentTrack(), progress(),
                 (state, track, time) -> new Timeline(state, time, track))
@@ -74,24 +78,13 @@ class TimelineManager {
     private Completable updateTimeline(Timeline t) {
         //if no track set the current track to the timeline track
         preferences.edit().putLong("trackProgress", t.time).apply();
-        if (currentTrack == null) {
-            currentTrack = t.track;
+        if (currentTrackedProgress.get() > t.time) {
+            currentTrackedProgress.set(0L);
         }
-        //if new chapter playing scrobble the previous track to make sure it is marked as completed
-        if (!currentTrack.ratingKey().equals(t.track.ratingKey())) {
-            if (currentTrack.albumTitle().equals(t.track.albumTitle())) {
-                Completable result = media.scrobble(currentTrack.uri(), currentTrack.ratingKey());
-                currentTrack = t.track;
-                Timber.d("Scrobling previous track");
-                return result;
-            }
-            currentTrackedProgress = 0L;
-            currentTrack = t.track;
-        }
-        //update track location to plex
-        currentTrackedProgress = t.time;
+
+        currentTrackedProgress.set(t.time);
         Timber.d("Sending progress update at %s",
-                DateUtils.formatElapsedTime(currentTrackedProgress / 1000));
+                DateUtils.formatElapsedTime(t.time / 1000));
         return media.timeline(t.track.uri(), t.track.queueItemId(), t.track.key(),
                 t.track.ratingKey(), t.state, t.track.duration(), t.time)
                 .onErrorComplete(); // Skip errors;
@@ -99,8 +92,9 @@ class TimelineManager {
 
     private Flowable<Long> progress() {
         return mediaController.progress()
-                .filter(progress -> (progress - currentTrackedProgress) > 10000);
-        // Send updates every 10 seconds playtime
+                .filter(progress -> (progress - currentTrackedProgress.get()) > 10000 || progress
+                        < currentTrackedProgress.get());
+        // Send updates every 10 seconds playtime or when current progress out of sync
     }
 
     private Flowable<Track> currentTrack() {

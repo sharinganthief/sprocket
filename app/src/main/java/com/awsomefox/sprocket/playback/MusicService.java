@@ -167,7 +167,6 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
                 "playback-state", Context.MODE_PRIVATE);
         timelineManager = new TimelineManager(mediaController, queueManager, media, rx,
                 preferences);
-        timelineManager.start();
         instance = this;
         disposables = new CompositeDisposable();
         serverManager.refresh();
@@ -224,6 +223,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     @Override
     public int onStartCommand(Intent startIntent, int flags, int startId) {
         Timber.d("onStartCommand");
+        timelineManager.reset();
         if (startIntent != null) {
             if (ACTION_STOP_CASTING.equals(startIntent.getAction())) {
                 CastContext.getSharedInstance(this).getSessionManager().endCurrentSession(true);
@@ -258,8 +258,13 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     }
 
     @Override
+    public void onCompletion(Track track) {
+        media.scrobble(track.uri(), track.ratingKey()).subscribeOn(Schedulers.io()).subscribe();
+    }
+
+    @Override
     public void onPlaybackStart(Track track, float speed) {
-        timelineManager.reset();
+        Timber.d("ON PLAYBAKC START with track");
         session.setActive(true);
 
         delayedStopHandler.removeCallbacksAndMessages(null);
@@ -281,7 +286,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override
     public void onPlaybackStart() {
-        timelineManager.reset();
+        Timber.d("ON PLAYBAKC START");
         session.setActive(true);
 
         delayedStopHandler.removeCallbacksAndMessages(null);
@@ -295,7 +300,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override
     public void onPlaybackPause() {
-        timelineManager.reset();
+        Timber.d("ON PLAYBAKC pause");
         stopForeground(false);
     }
 

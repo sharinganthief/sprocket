@@ -97,6 +97,10 @@ class PlaybackManager implements Playback.Callback {
         }
     }
 
+    private void handleCompletion(Track track) {
+        serviceCallback.onCompletion(track);
+    }
+
     private void handlePlayRequest(Track track, float speed) {
         serviceCallback.onPlaybackStart(track, speed);
     }
@@ -195,6 +199,7 @@ class PlaybackManager implements Playback.Callback {
     @Override
     public void onCompletion() {
         Timber.d("onCompletion");
+        handleCompletion(queueManager.currentTrack());
         if (queueManager.hasNext()) {
             queueManager.next();
             handlePlayRequest();
@@ -265,6 +270,8 @@ class PlaybackManager implements Playback.Callback {
 
     interface PlaybackServiceCallback {
         void onPlaybackStart();
+
+        void onCompletion(Track track);
 
         void onPlaybackStart(Track track, float speed);
 
