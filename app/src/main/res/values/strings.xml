@@ -40,7 +40,7 @@
 
     <string name="notification_channel">Sprocket_chanel_id</string>
     <string name="notification_channel_description">Channel ID for Sprocket</string>
-    <string name="now_playing_speed_text">Now Playing Speed:</string>
+    <string name="now_playing_speed_text">Current Speed:</string>
 
     <string name="chapter_title">Chapter %d</string>
 
@@ -51,5 +51,10 @@
 
     <string name="dot_spacer">%s • %s</string>
     <string name="self_destruct">Login</string>
+    <string name="_2_5x">2.5</string>
+    <string name="_5x">.5</string>
+    <string name="_1_0">1.0</string>
+    <string name="plus">+</string>
+    <string name="minus">-</string>
 
 </resources>

@@ -56,7 +56,7 @@ public class PlaybackManagerTest {
 
   @Before public void setup() {
     playbackManager = new PlaybackManager(mockQueueManager, mockServiceCallback, mockAndroidClock,
-        mockPlayback);
+            mockPlayback);
     mediaSessionCallback = playbackManager.getMediaSessionCallback();
   }
 
@@ -137,12 +137,12 @@ public class PlaybackManagerTest {
 
     playbackManager.onPlaybackStatusChanged();
 
-      verify(mockServiceCallback, times(1)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class));
+    verify(mockServiceCallback, times(1)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class), null);
     verify(mockServiceCallback, times(1)).onNotificationRequired();
 
     playbackManager.onPlaybackStatusChanged();
 
-      verify(mockServiceCallback, times(2)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class));
+    verify(mockServiceCallback, times(2)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class), null);
     verifyNoMoreInteractions(mockServiceCallback);
   }
 

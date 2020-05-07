@@ -72,14 +72,18 @@ public class MediaService {
   }
 
   public Observable<MediaContainer> browse(HttpUrl url, String libKey, String mediaKey,
-                                           int offset) {
+                                           int page, Integer pageSize) {
+      String query = "sort=titleSort:asc";
+      if (pageSize != null) {
+          query += "&X-Plex-Container-Size=" + pageSize;
+      }
     return api.get(url.newBuilder()
         .addPathSegments("library/sections")
         .addPathSegment(libKey)
         .addPathSegment("all")
-        .query("sort=titleSort:asc&X-Plex-Container-Size=50")
+            .query(query)
         .addQueryParameter("type", mediaKey)
-        .addQueryParameter("X-Plex-Container-Start", String.valueOf(offset))
+            .addQueryParameter("X-Plex-Container-Start", String.valueOf(page))
         .addQueryParameter(TOKEN, url.queryParameter(TOKEN))
         .build());
   }

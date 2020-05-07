@@ -61,7 +61,7 @@ public class TimelineManagerTest {
 
   @Before public void setup() {
       timelineManager = new TimelineManager(mockMediaController, mockQueueManager, mockMedia,
-        Rx.test());
+              Rx.test(), null);
       when(mockMediaController.progress()).thenReturn(testProgress());
       when(mockMediaController.state()).thenReturn(testState());
     when(mockQueueManager.queue()).thenReturn(testQueue());

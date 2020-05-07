@@ -70,7 +70,7 @@ public class MediaServiceTest {
   }
 
   @Test public void browse() {
-    media.browse(URL, "libKey", "mediaKey", 100);
+      media.browse(URL, "libKey", "mediaKey", 100, 50);
     assertThat(api.actual, is("https://plex.tv/library/sections/libKey/all?sort=titleSort:asc" +
         "&X-Plex-Container-Size=50&type=mediaKey&X-Plex-Container-Start=100&X-Plex-Token=token"));
   }

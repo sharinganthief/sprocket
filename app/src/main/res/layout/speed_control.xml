@@ -7,36 +7,69 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/speed_info"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/now_playing_speed_text"
-            android:textSize="24sp" />
 
         <TextView
             android:id="@+id/speed_value"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
             android:gravity="center"
-            android:text="1.0"
-            android:textSize="36sp" />
+            android:text="@string/_1_0"
+            android:textSize="36sp"
+            android:layout_marginTop="10sp"
+            android:textColor="@color/accent" />
     </LinearLayout>
 
-
-    <SeekBar
-        android:id="@+id/speed_seek_bar"
-        style="@style/Widget.AppCompat.SeekBar.Discrete"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:max="20"
-        android:progress="5"
-        android:padding="5dp" />
+        android:orientation="horizontal"
+        android:layout_marginVertical="20dp">
+
+        <TextView
+            android:id="@+id/min_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="@string/_5x" />
+
+        <SeekBar
+            android:id="@+id/speed_seek_bar"
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="40"
+            android:max="20"
+            android:padding="5dp"
+            android:progress="5" />
+
+        <TextView
+            android:id="@+id/max_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/_2_5x"
+            android:layout_gravity="start" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/lower"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:text="@string/minus"
+            android:textColor="@color/accent" />
+
+        <Button
+            android:id="@+id/higher"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/plus"
+            android:textColor="@color/accent" />
+    </LinearLayout>
 </LinearLayout>

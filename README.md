@@ -12,9 +12,10 @@ Currently supports
 * Playback speed control. 
 * Local Playback
 * Cast Playback
+* Android Auto support
+* Android Wear support (I don't have a watch to test but should be working)
 
 In the future
-* Android Auto support
 * Downloads
 * Offline Playback
-* Android Wear support
+(Currently very heavily reliant on a connection to Plex)

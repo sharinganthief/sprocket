@@ -20,6 +20,10 @@
         android:theme="@style/AppTheme">
 
         <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+
+        <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.awsomefox.sprocket.CastOptionsProvider" />
 
@@ -49,12 +53,13 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
-        <!--        <service android:name=".MyMediaBrowserService"-->
-        <!--            android:exported="true">-->
-        <!--            <intent-filter>-->
-        <!--                <action android:name="android.media.browse.MediaBrowserService"/>-->
-        <!--            </intent-filter>-->
-        <!--        </service>-->
+        <service
+            android:name="com.awsomefox.sprocket.browser.AutoMediaBrowserService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
 
     </application>
 

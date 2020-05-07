@@ -43,6 +43,8 @@ import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPIN
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED;
+import static com.awsomefox.sprocket.ui.PlayerController.BUNDLE_AUTO;
+import static com.awsomefox.sprocket.ui.PlayerController.CUSTOM_ACTION_SPEED;
 
 public class MediaController {
 
@@ -237,9 +239,9 @@ public class MediaController {
 
     public void updatePlaySpeed() {
         if (mediaController != null) {
-            Bundle newSpeed = new Bundle();
-            newSpeed.putFloat(PlaybackManager.BUNDLE_SPEED_KEY, speed);
-            mediaController.getTransportControls().sendCustomAction(PlaybackManager.CUSTOM_ACTION_SPEED, newSpeed);
+            Bundle updatePlayback = new Bundle();
+            updatePlayback.putBoolean(BUNDLE_AUTO, false);
+            mediaController.getTransportControls().sendCustomAction(CUSTOM_ACTION_SPEED, updatePlayback);
         }
     }
 
