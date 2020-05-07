@@ -223,7 +223,8 @@ public class DetailController extends BaseMediaController implements
                         default:
                             Router miniplayerRouter = getChildRouter(miniplayerContainer);
                             if (!miniplayerRouter.hasRootController()) {
-                                miniplayerRouter.setRoot(RouterTransaction.with(new MiniPlayerController(null)));
+                                miniplayerRouter.setRoot(RouterTransaction.with(
+                                        new MiniPlayerController(null)));
                             }
                     }
                 }, Rx::onError));

@@ -141,7 +141,6 @@ public class BrowserController extends BaseMediaController implements
             }
         }
 
-
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(new DividerItemDecoration(itemDivider));
@@ -175,7 +174,6 @@ public class BrowserController extends BaseMediaController implements
             }
         }
         observePlayback();
-
 
     }
 
@@ -247,8 +245,8 @@ public class BrowserController extends BaseMediaController implements
                     }
 
                     if (getActivity() != null) {
-                        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), R.layout.item_spinner,
-                                libNames);
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(),
+                                R.layout.item_spinner, libNames);
                         toolbarSpinner.setAdapter(adapter);
                         toolbarSpinner.setSelection(currentPosition);
                         toolbarSpinner.setOnItemSelectedListener(this);
@@ -319,7 +317,8 @@ public class BrowserController extends BaseMediaController implements
                         default:
                             Router miniplayerRouter = getChildRouter(miniplayerContainer);
                             if (!miniplayerRouter.hasRootController()) {
-                                miniplayerRouter.setRoot(RouterTransaction.with(new MiniPlayerController(null)));
+                                miniplayerRouter.setRoot(RouterTransaction.with(
+                                        new MiniPlayerController(null)));
                             }
                     }
                 }, Rx::onError));

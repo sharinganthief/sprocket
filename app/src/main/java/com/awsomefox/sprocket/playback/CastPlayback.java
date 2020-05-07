@@ -249,7 +249,8 @@ class CastPlayback implements Playback {
     return state;
   }
 
-    private void loadMedia(@NonNull Track track, boolean autoPlay, float speed) throws JSONException {
+  private void loadMedia(@NonNull Track track, boolean autoPlay, float speed)
+          throws JSONException {
       Timber.d("loadMedia %s %s %s", track, autoPlay, speed);
     if (!track.equals(currentTrack)) {
       currentTrack = track;
@@ -260,7 +261,8 @@ class CastPlayback implements Playback {
     MediaInfo media = toCastMediaMetadata(track, customData);
     MediaLoadOptions loadOptions = new MediaLoadOptions.Builder()
         .setAutoplay(autoPlay)
-            .setPlayPosition(Math.min(Math.max(currentPosition, track.viewOffset()), track.duration()))
+            .setPlayPosition(Math.min(Math.max(currentPosition, track.viewOffset()),
+                    track.duration()))
         .setCustomData(customData)
             .setPlaybackRate(Math.min(speed, 2.0))
         .build();

@@ -67,7 +67,8 @@ class MusicRepositoryImpl implements MusicRepository {
   }
 
   @Override public Single<List<PlexItem>> browseLibrary(Library lib) {
-    return Observable.concat(mediaTypes(lib), chaptersInProgressImpl(lib), booksRecentlyListenedTo(lib)).toList();
+    return Observable.concat(mediaTypes(lib), chaptersInProgressImpl(lib),
+            booksRecentlyListenedTo(lib)).toList();
   }
 
   private Observable<PlexItem> mediaTypes(Library lib) {
@@ -245,7 +246,8 @@ class MusicRepositoryImpl implements MusicRepository {
         .ratingKey(dir.ratingKey)
         .artistTitle(dir.parentTitle)
         .libraryId(libraryId)
-              .thumb(Strings.isBlank(dir.thumb) ? null : Urls.addPathToUrl(uri, dir.thumb).toString())
+              .thumb(Strings.isBlank(dir.thumb) ? null
+                      : Urls.addPathToUrl(uri, dir.thumb).toString())
         .uri(uri)
         .build();
   }
@@ -258,7 +260,8 @@ class MusicRepositoryImpl implements MusicRepository {
         .libraryKey(libKey)
         .libraryId(libraryId)
         .art(Urls.getTranscodeUrl(uri, dir.art))
-              .thumb(Strings.isBlank(dir.thumb) ? null : Urls.addPathToUrl(uri, dir.thumb).toString())
+              .thumb(Strings.isBlank(dir.thumb) ? null
+                      : Urls.addPathToUrl(uri, dir.thumb).toString())
         .uri(uri)
         .build();
   }

@@ -42,6 +42,19 @@ import static com.awsomefox.sprocket.ui.PlayerController.BUNDLE_TRACK_URI;
 import static com.awsomefox.sprocket.ui.PlayerController.SPEED;
 
 public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
+    /**
+     * Bundle extra indicating the presentation hint for browsable media items.
+     */
+    public static final String CONTENT_STYLE_BROWSABLE_HINT =
+            "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT";
+    /**
+     * Specifies the corresponding items should be presented as lists.
+     */
+    public static final int CONTENT_STYLE_LIST_ITEM_HINT_VALUE = 1;
+    /**
+     * Specifies that the corresponding items should be presented as grids.
+     */
+    public static final int CONTENT_STYLE_GRID_ITEM_HINT_VALUE = 2;
     private static final String BROWSER_ROOT = "root";
     private static final String LIBRARY_ROOT_PREFIX = "library-root-";
     private static final String BROWSER_BOOK_LISTS_PREFIX = "books-";
@@ -50,22 +63,6 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
     private static final String BROWSER_BOOKS_IN_PROGRESS = "bookinprog-";
     private static final String BOOKS_FROM_AUTHOR_PREFIX = "booksbyauthor-";
     private static final String CHAPTERS_FROM_BOOK_PREFIX = "chaptersinbook-";
-    /**
-     * Bundle extra indicating the presentation hint for browsable media items.
-     */
-    public static final String CONTENT_STYLE_BROWSABLE_HINT =
-            "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT";
-
-    /**
-     * Specifies the corresponding items should be presented as lists.
-     */
-    public static final int CONTENT_STYLE_LIST_ITEM_HINT_VALUE = 1;
-
-    /**
-     * Specifies that the corresponding items should be presented as grids.
-     */
-    public static final int CONTENT_STYLE_GRID_ITEM_HINT_VALUE = 2;
-
     CompositeDisposable disposables;
 
     private Map<String, Library> currentLibraries;
@@ -106,12 +103,14 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
 
     @Nullable
     @Override
-    public MediaBrowserServiceCompat.BrowserRoot onGetRoot(@NotNull String clientPackageName, int clientUid, Bundle rootHints) {
+    public MediaBrowserServiceCompat.BrowserRoot onGetRoot(@NotNull String clientPackageName,
+                                                           int clientUid, Bundle rootHints) {
         return new BrowserRoot(BROWSER_ROOT, null);
     }
 
     @Override
-    public void onLoadChildren(@NotNull String parentId, @NotNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+    public void onLoadChildren(@NotNull String parentId,
+                               @NotNull Result<List<MediaBrowserCompat.MediaItem>> result) {
         Timber.d("Getting folders with parent id:%s", parentId);
         if (BROWSER_ROOT.equals(parentId)) {
             getRootFolders(result);
@@ -125,7 +124,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
             getAuthorLists(result, parentId.substring(BROWSER_AUTHOR_LIST_PREFIX.length()));
         } else if (parentId.startsWith(BROWSER_CHAPTERS_IN_PROGRESS)) {
             //get chapters
-            getChapterInProgressLists(result, parentId.substring(BROWSER_CHAPTERS_IN_PROGRESS.length()));
+            getChapterInProgressLists(result,
+                    parentId.substring(BROWSER_CHAPTERS_IN_PROGRESS.length()));
         } else if (parentId.startsWith(BROWSER_BOOKS_IN_PROGRESS)) {
             getBooksInProgressLists(result, parentId.substring(BROWSER_BOOKS_IN_PROGRESS.length()));
             //get books in progress
@@ -158,7 +158,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                                 .setTitle(library.name())
                                 .setMediaId(LIBRARY_ROOT_PREFIX + library.uuid())
                                 .build();
-                        mediaItems.add(new MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+                        mediaItems.add(new MediaBrowserCompat.MediaItem(description,
+                                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
 
                     }
                     result.sendResult(mediaItems);
@@ -171,9 +172,9 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
         disposables.dispose();
     }
 
-    private void getLibraryRootFolders(Result<List<MediaBrowserCompat.MediaItem>> result, String libraryId) {
+    private void getLibraryRootFolders(Result<List<MediaBrowserCompat.MediaItem>> result,
+                                       String libraryId) {
         List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
-
 
         MediaDescriptionCompat.Builder rootLists = new MediaDescriptionCompat.Builder();
 
@@ -186,30 +187,38 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
         // Add authors to root
         rootLists.setTitle(getString(R.string.authors))
                 .setMediaId(BROWSER_AUTHOR_LIST_PREFIX + libraryId)
-                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/" + R.drawable.authors))
+                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/"
+                        + R.drawable.authors))
                 .setExtras(authorStyle);
 
-        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(),
+                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
 
         // Add Books to root
         rootLists.setTitle(getString(R.string.books))
                 .setMediaId(BROWSER_BOOK_LISTS_PREFIX + libraryId)
-                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/" + R.drawable.books))
+                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/"
+                        + R.drawable.books))
                 .setExtras(bookStyle);
-        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(),
+                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
 
         // Add chapters in progress to root
         rootLists.setTitle("Chapters in progress")
                 .setMediaId(BROWSER_CHAPTERS_IN_PROGRESS + libraryId)
-                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/" + R.drawable.bookmarks));
-        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/"
+                        + R.drawable.bookmarks));
+        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(),
+                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
 
         // Add books in pprogress to root
         rootLists.setTitle("Books in progress")
                 .setMediaId(BROWSER_BOOKS_IN_PROGRESS + libraryId)
-                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/" + R.drawable.bookmarks))
+                .setIconUri(Uri.parse("android.resource://com.awsomefox.sprocket/"
+                        + R.drawable.bookmarks))
                 .setExtras(bookStyle);
-        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+        mediaItems.add(new MediaBrowserCompat.MediaItem(rootLists.build(),
+                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
 
         result.sendResult(mediaItems);
     }
@@ -230,7 +239,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 .subscribe(items -> addPlexItemsToBrowserResult(result, items)));
     }
 
-    private void getAuthorLists(Result<List<MediaBrowserCompat.MediaItem>> result, String libraryId) {
+    private void getAuthorLists(Result<List<MediaBrowserCompat.MediaItem>> result,
+                                String libraryId) {
         result.detach();
         Library lib = currentLibraries.get(libraryId);
         MediaType type = MediaType.builder()
@@ -246,7 +256,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 .subscribe(items -> addPlexItemsToBrowserResult(result, items)));
     }
 
-    private void getChapterInProgressLists(Result<List<MediaBrowserCompat.MediaItem>> result, String libraryId) {
+    private void getChapterInProgressLists(Result<List<MediaBrowserCompat.MediaItem>> result,
+                                           String libraryId) {
         result.detach();
         Library lib = currentLibraries.get(libraryId);
         disposables.add(musicService.musicRepository.chaptersInProgress(lib)
@@ -254,7 +265,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 .subscribe(items -> addPlexItemsToBrowserResult(result, items)));
     }
 
-    private void getBooksInProgressLists(Result<List<MediaBrowserCompat.MediaItem>> result, String libraryId) {
+    private void getBooksInProgressLists(Result<List<MediaBrowserCompat.MediaItem>> result,
+                                         String libraryId) {
         result.detach();
         Library lib = currentLibraries.get(libraryId);
         disposables.add(musicService.musicRepository.booksInProgress(lib)
@@ -262,7 +274,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 .subscribe(items -> addPlexItemsToBrowserResult(result, items)));
     }
 
-    private void getChaptersFromBook(Result<List<MediaBrowserCompat.MediaItem>> result, String bookId) {
+    private void getChaptersFromBook(Result<List<MediaBrowserCompat.MediaItem>> result,
+                                     String bookId) {
         result.detach();
         Book book = currentBooks.get(bookId);
         disposables.add(musicService.musicRepository.albumItems(book)
@@ -270,7 +283,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 .subscribe(items -> addPlexItemsToBrowserResult(result, items)));
     }
 
-    private void getBooksFromAuthor(Result<List<MediaBrowserCompat.MediaItem>> result, String authorId) {
+    private void getBooksFromAuthor(Result<List<MediaBrowserCompat.MediaItem>> result,
+                                    String authorId) {
         result.detach();
         Author author = currentAuthors.get(authorId);
         disposables.add(musicService.musicRepository.artistItems(author)
@@ -279,7 +293,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
 
     }
 
-    private void addPlexItemsToBrowserResult(Result<List<MediaBrowserCompat.MediaItem>> result, List<PlexItem> items) {
+    private void addPlexItemsToBrowserResult(Result<List<MediaBrowserCompat.MediaItem>> result,
+                                             List<PlexItem> items) {
         List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
         for (PlexItem item : items) {
             if (item instanceof Book) {
@@ -291,7 +306,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                         .setMediaId(CHAPTERS_FROM_BOOK_PREFIX + book.ratingKey())
                         .setIconUri(Uri.parse(Uri.decode(book.thumb())))
                         .build();
-                mediaItems.add(new MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+                mediaItems.add(new MediaBrowserCompat.MediaItem(description,
+                        MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
             } else if (item instanceof Author) {
                 Bundle bookStyle = new Bundle();
                 bookStyle.putInt(CONTENT_STYLE_BROWSABLE_HINT, CONTENT_STYLE_GRID_ITEM_HINT_VALUE);
@@ -303,7 +319,8 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                         .setExtras(bookStyle)
                         .setIconUri(Uri.parse(Uri.decode(author.thumb())))
                         .build();
-                mediaItems.add(new MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+                mediaItems.add(new MediaBrowserCompat.MediaItem(description,
+                        MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
             } else if (item instanceof Track) {
                 Track track = (Track) item;
                 Bundle extras = new Bundle();
@@ -316,12 +333,14 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                         .setTitle(track.title())
                         .setSubtitle(track.artistTitle())
-                        .setDescription(DateUtils.formatElapsedTime(track.viewOffset() / 1000) + "/" + DateUtils.formatElapsedTime(track.duration() / 1000))
+                        .setDescription(DateUtils.formatElapsedTime(track.viewOffset() / 1000)
+                                + "/" + DateUtils.formatElapsedTime(track.duration() / 1000))
                         .setMediaId(track.ratingKey())
                         .setIconUri(Uri.parse(Uri.decode(track.thumb())))
                         .setExtras(extras)
                         .build();
-                mediaItems.add(new MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+                mediaItems.add(new MediaBrowserCompat.MediaItem(description,
+                        MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
             }
 
         }

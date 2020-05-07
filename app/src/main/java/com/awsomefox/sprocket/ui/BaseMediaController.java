@@ -33,8 +33,6 @@ import com.awsomefox.sprocket.data.repository.MusicRepository;
 import com.awsomefox.sprocket.playback.MediaController;
 import com.awsomefox.sprocket.playback.QueueManager;
 import com.awsomefox.sprocket.ui.adapter.ClickableViewHolder;
-import com.awsomefox.sprocket.util.Strings;
-import com.awsomefox.sprocket.util.Urls;
 
 import java.util.Objects;
 
@@ -42,7 +40,6 @@ import javax.inject.Inject;
 
 import io.reactivex.observers.DisposableCompletableObserver;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.HttpUrl;
 
 abstract class BaseMediaController extends BaseController {
     @Inject
@@ -61,17 +58,20 @@ abstract class BaseMediaController extends BaseController {
     @NonNull
     protected View onCreateView(@NonNull LayoutInflater inflater, @NonNull ViewGroup container) {
         View view = super.onCreateView(inflater, container);
-        preferences = Objects.requireNonNull(getActivity()).getSharedPreferences("playback-state", Context.MODE_PRIVATE);
+        preferences = Objects.requireNonNull(getActivity()).getSharedPreferences("playback-state",
+                Context.MODE_PRIVATE);
         return view;
     }
 
     private void makeToastOnUIThread(String text) {
         Objects.requireNonNull(getActivity()).runOnUiThread(() ->
-                Toast.makeText(Objects.requireNonNull(getActivity()), text, Toast.LENGTH_SHORT).show());
+                Toast.makeText(Objects.requireNonNull(getActivity()), text,
+                        Toast.LENGTH_SHORT).show());
     }
 
     void markUstarted(Track plexItem, ImageView iv) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+                Objects.requireNonNull(getActivity()));
         builder.setTitle(R.string.mark_unstarted)
                 .setPositiveButton(R.string.yes, (dialog, id) -> {
                     musicRepository.unscrobble(plexItem.uri(), plexItem.ratingKey())
@@ -95,7 +95,8 @@ abstract class BaseMediaController extends BaseController {
     }
 
     void markFinished(Track plexItem, ImageView iv) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+                Objects.requireNonNull(getActivity()));
         builder.setTitle(R.string.mark_finshed)
                 .setPositiveButton(R.string.yes, (dialog, id) -> {
                     musicRepository.scrobble(plexItem.uri(), plexItem.ratingKey())
@@ -128,37 +129,5 @@ abstract class BaseMediaController extends BaseController {
         preferences.edit().putString("trackKey", track.key()).apply();
         preferences.edit().putString("trackParentKey", track.parentKey()).apply();
         preferences.edit().putString("trackLibraryId", track.libraryId()).apply();
-    }
-
-    Track getPersistedTrack() {
-        HttpUrl uri = HttpUrl.get(preferences.getString("trackUri", "http://plex.com"));
-        String key = preferences.getString("trackKey", "1234");
-        String parentKey = preferences.getString("trackParentKey", "1234");
-        String libraryId = preferences.getString("trackLibraryId", "1234");
-        return Track.builder().queueItemId(0)
-                .libraryId(libraryId)
-                .key(key)
-                .ratingKey("track.ratingKey")
-                .parentKey(parentKey)
-                .title("track.title")
-                .albumTitle("track.parentTitle")
-                .artistTitle("track.grandparentTitle")
-                .index(0)
-                .duration(0L)
-                .viewOffset(0L)
-                .viewCount(1)
-                .thumb(Strings.isBlank("track.thumb") ? null : Urls.addPathToUrl(uri, "track.thumb").toString())
-                .source(Urls.addPathToUrl(uri, "track.media.part.key").toString())
-                .uri(uri)
-                .recent(true)
-                .build();
-    }
-
-    long getPersistedProgress() {
-        return preferences.getLong("trackProgress", 0L);
-    }
-
-    void persistProgress(long progress) {
-        preferences.edit().putLong("trackProgress", progress).apply();
     }
 }

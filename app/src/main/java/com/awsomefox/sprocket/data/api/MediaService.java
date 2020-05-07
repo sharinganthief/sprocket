@@ -99,7 +99,8 @@ public class MediaService {
     }
 
     public Observable<MediaContainer> booksRecentlyListendTo(HttpUrl url, String libKey) {
-        long previousDate = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(14)).getTime() / 1000L;
+      long previousDate = new Date(System.currentTimeMillis()
+              - TimeUnit.DAYS.toMillis(14)).getTime() / 1000L;
         return api.get(url.newBuilder()
                 .addPathSegments("library/sections")
                 .addPathSegment(libKey)

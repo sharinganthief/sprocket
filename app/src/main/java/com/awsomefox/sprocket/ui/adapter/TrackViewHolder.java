@@ -37,7 +37,7 @@ final class TrackViewHolder extends ClickableViewHolder<Track> {
     @BindView(R.id.track_duration)
     TextView duration;
     @BindString(R.string.chapter_title)
-    String chapter_title;
+    String chapterTitle;
     @BindView(R.id.listen_track)
     ImageView listened;
 
@@ -48,7 +48,7 @@ final class TrackViewHolder extends ClickableViewHolder<Track> {
 
     @Override
     void bindModel(@NonNull Track track) {
-        title.setText(String.format(chapter_title, track.index()));
+        title.setText(String.format(chapterTitle, track.index()));
         subtitle.setText(track.albumTitle());
         if (track.viewOffset() != 0) {
             listened.setImageResource(R.drawable.partial_listen);

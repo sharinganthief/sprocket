@@ -90,15 +90,17 @@ class TimelineManager {
         }
         //update track location to plex
         currentTrackedProgress = t.time;
-        Timber.d("Sending progress update at %s", DateUtils.formatElapsedTime(currentTrackedProgress / 1000));
-        return media.timeline(t.track.uri(), t.track.queueItemId(), t.track.key(), t.track.ratingKey(),
-                t.state, t.track.duration(), t.time)
+        Timber.d("Sending progress update at %s",
+                DateUtils.formatElapsedTime(currentTrackedProgress / 1000));
+        return media.timeline(t.track.uri(), t.track.queueItemId(), t.track.key(),
+                t.track.ratingKey(), t.state, t.track.duration(), t.time)
                 .onErrorComplete(); // Skip errors;
     }
 
     private Flowable<Long> progress() {
         return mediaController.progress()
-                .filter(progress -> (progress - currentTrackedProgress) > 10000);  // Send updates every 10 seconds playtime
+                .filter(progress -> (progress - currentTrackedProgress) > 10000);
+        // Send updates every 10 seconds playtime
     }
 
     private Flowable<Track> currentTrack() {
@@ -110,7 +112,8 @@ class TimelineManager {
     private Flowable<String> state() {
         Timber.d("TIMELINE STATE");
         return mediaController.state()
-                .filter(state -> state == STATE_PLAYING || state == STATE_PAUSED || state == STATE_STOPPED)
+                .filter(state -> state == STATE_PLAYING || state == STATE_PAUSED
+                        || state == STATE_STOPPED)
                 .map(state -> {
                     if (state == STATE_PLAYING) {
                         return "playing";

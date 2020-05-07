@@ -59,7 +59,7 @@ public class MiniPlayerController extends BaseMediaController {
     @BindString(R.string.description_pause)
     String descPause;
     @BindString(R.string.chapter_title)
-    String chapter_title;
+    String chapterTitle;
     @Inject
     Rx rx;
 
@@ -117,7 +117,7 @@ public class MiniPlayerController extends BaseMediaController {
     }
 
     private void updateTrackInfo(@NonNull Track track) {
-        trackTitle.setText(String.format(chapter_title, track.index()));
+        trackTitle.setText(String.format(chapterTitle, track.index()));
         bookTitle.setText(track.albumTitle());
         Glide.with(Objects.requireNonNull(getActivity()))
                 .load(track.thumb())

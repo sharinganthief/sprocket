@@ -32,7 +32,8 @@ public class TrackJsonAdapterTest {
   private final Moshi moshi = new Moshi.Builder().build();
   private final JsonAdapter<Track> adapter = Track.jsonAdapter(moshi);
 
-  @Test public void serialization() throws IOException {
+  @Test
+  public void serialization() throws IOException {
     Track exptected = createTrack();
     String json = adapter.toJson(exptected);
     Track actual = adapter.fromJson(json);
@@ -41,19 +42,22 @@ public class TrackJsonAdapterTest {
 
   private Track createTrack() {
     return Track.builder()
-        .queueItemId(100)
-        .libraryId("libraryId")
-        .key("key")
-        .ratingKey("ratingKey")
-        .parentKey("parentKey")
-        .title("title")
-        .albumTitle("albumTitle")
-        .artistTitle("artistTitle")
-        .index(200)
-        .duration(300)
-        .thumb("thumb")
-        .source("source")
-        .uri(HttpUrl.parse("https://plex.tv"))
-        .build();
+            .queueItemId(100)
+            .libraryId("libraryId")
+            .key("key")
+            .ratingKey("ratingKey")
+            .parentKey("parentKey")
+            .title("title")
+            .albumTitle("albumTitle")
+            .artistTitle("artistTitle")
+            .index(200)
+            .duration(300)
+            .thumb("thumb")
+            .source("source")
+            .uri(HttpUrl.parse("https://plex.tv"))
+            .recent(true)
+            .viewCount(0)
+            .viewOffset(100L)
+            .build();
   }
 }

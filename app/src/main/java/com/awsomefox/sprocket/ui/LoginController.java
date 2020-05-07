@@ -154,7 +154,8 @@ public class LoginController extends BaseController {
                     loginManager.logout();
                     contentLoading.hide();
                     Views.visible(loginForm);
-                    Toast.makeText(getActivity(), R.string.sign_in_failed, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), R.string.sign_in_failed,
+                            Toast.LENGTH_SHORT).show();
                     enableInput();
                 }));
     }

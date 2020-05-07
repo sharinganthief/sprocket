@@ -1,13 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.android.gms.oss-licenses-plugin'
-apply plugin: 'com.github.triplet.play'
 apply plugin: 'checkstyle'
-
-play {
-    track = 'internal'
-    resolutionStrategy = 'ignore'
-    defaultToAppBundles = true
-}
 
 checkstyle {
     toolVersion = '8.26'
@@ -89,7 +82,7 @@ dependencies {
     testAnnotationProcessor "com.google.auto.value:auto-value:${versions.autovalue}"
     annotationProcessor "com.ryanharter.auto.value:auto-value-moshi:${versions.automoshi}"
     annotationProcessor "com.ryanharter.auto.value:auto-value-parcel:${versions.autoparcel}"
-    implementation "com.ryanharter.auto.value:auto-value-parcel-adapter:${versions.autoparcel}"
+    compile "com.ryanharter.auto.value:auto-value-parcel-adapter:${versions.autoparcel}"
 
     implementation "com.google.dagger:dagger:${versions.dagger}"
     annotationProcessor "com.google.dagger:dagger-compiler:${versions.dagger}"

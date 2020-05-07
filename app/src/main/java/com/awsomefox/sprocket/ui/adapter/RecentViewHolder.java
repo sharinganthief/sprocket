@@ -47,7 +47,7 @@ final class RecentViewHolder extends ClickableViewHolder<Track> {
     @BindView(R.id.listen_track)
     ImageView listened;
     @BindString(R.string.chapter_title)
-    String chapter_title;
+    String chapterTitle;
     @BindDimen(R.dimen.item_height)
     int height;
 
@@ -58,7 +58,7 @@ final class RecentViewHolder extends ClickableViewHolder<Track> {
 
     @Override
     void bindModel(@NonNull Track track) {
-        subtitle.setText(String.format(chapter_title, track.index()));
+        subtitle.setText(String.format(chapterTitle, track.index()));
         title.setText(track.albumTitle());
         if (track.viewOffset() != 0) {
             listened.setImageResource(R.drawable.partial_listen);

@@ -72,6 +72,7 @@ import timber.log.Timber;
 
 import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
 import static android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM;
+import static android.support.v4.media.session.PlaybackStateCompat.STATE_NONE;
 
 public class MusicService extends Service implements PlaybackManager.PlaybackServiceCallback {
 
@@ -127,26 +128,29 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
         Timber.d("onCreate");
         SprocketApp.get(this).component().inject(this);
 
-        Playback playback = new LocalPlayback(getApplicationContext(), mediaController, audioManager,
-                wifiManager, client);
+        Playback playback = new LocalPlayback(getApplicationContext(), mediaController,
+                audioManager, wifiManager, client);
 
         session = new MediaSessionCompat(this, "MusicService");
 
         try {
             MediaControllerCompat mediaController =
-                    new MediaControllerCompat(this.getApplicationContext(), session.getSessionToken());
+                    new MediaControllerCompat(this.getApplicationContext(),
+                            session.getSessionToken());
             this.mediaController.setMediaController(mediaController);
         } catch (RemoteException e) {
             Timber.e(e, "Could not create MediaController");
             throw new IllegalStateException();
         }
-        playbackManager = new PlaybackManager(queueManager, this, AndroidClock.DEFAULT, playback);
+        playbackManager = new PlaybackManager(queueManager, this,
+                AndroidClock.DEFAULT, playback);
 
         session.setCallback(playbackManager.getMediaSessionCallback());
 
         Context context = getApplicationContext();
         Intent intent = new Intent(context, SprocketActivity.class);
-        session.setSessionActivity(PendingIntent.getActivity(context, 99, intent, FLAG_UPDATE_CURRENT));
+        session.setSessionActivity(PendingIntent.getActivity(context, 99, intent,
+                FLAG_UPDATE_CURRENT));
 
         playbackManager.updatePlaybackState();
 
@@ -159,13 +163,16 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
         mediaRouter = MediaRouter.getInstance(getApplicationContext());
 
-        preferences = Objects.requireNonNull(getApplicationContext()).getSharedPreferences("playback-state", Context.MODE_PRIVATE);
-        timelineManager = new TimelineManager(mediaController, queueManager, media, rx, preferences);
+        preferences = Objects.requireNonNull(getApplicationContext()).getSharedPreferences(
+                "playback-state", Context.MODE_PRIVATE);
+        timelineManager = new TimelineManager(mediaController, queueManager, media, rx,
+                preferences);
         timelineManager.start();
         instance = this;
         disposables = new CompositeDisposable();
         serverManager.refresh();
-        if (mediaController.getPlaybackState() == null || (mediaController.getPlaybackState().getState() == PlaybackStateCompat.STATE_NONE)) {
+        if (mediaController.getPlaybackState() == null
+                || (mediaController.getPlaybackState().getState() == STATE_NONE)) {
             Timber.d("Restoring state");
             Track track = getPersistedTrack();
             disposables.add(musicRepository.createPlayQueue(track)
@@ -202,7 +209,8 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
                 .duration(0L)
                 .viewOffset(0L)
                 .viewCount(1)
-                .thumb(Strings.isBlank("track.thumb") ? null : Urls.addPathToUrl(uri, "track.thumb").toString())
+                .thumb(Strings.isBlank("track.thumb") ? null : Urls.addPathToUrl(uri,
+                        "track.thumb").toString())
                 .source(Urls.addPathToUrl(uri, "track.media.part.key").toString())
                 .uri(uri)
                 .recent(true)
@@ -308,7 +316,9 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     }
 
     @Override
-    public void onPlaybackStateUpdated(PlaybackStateCompat newState, MediaMetadataCompat metadataCompat, List<MediaSessionCompat.QueueItem> queueItemList) {
+    public void onPlaybackStateUpdated(PlaybackStateCompat newState,
+                                       MediaMetadataCompat metadataCompat,
+                                       List<MediaSessionCompat.QueueItem> queueItemList) {
         session.setPlaybackState(newState);
         session.setMetadata(metadataCompat);
         session.setQueue(queueItemList);

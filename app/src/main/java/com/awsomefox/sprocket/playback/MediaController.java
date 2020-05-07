@@ -64,7 +64,8 @@ public class MediaController {
             super.onPlaybackStateChanged(newPlaybackState);
 
             @State int newState = newPlaybackState.getState();
-            @State int currentState = stateRelay.getValue() != null ? stateRelay.getValue() : STATE_NONE;
+            @State int currentState = stateRelay.getValue() != null ? stateRelay.getValue()
+                    : STATE_NONE;
             Timber.d("just progress ");
             if (newState != currentState) {
                 stateRelay.accept(newState);
@@ -241,7 +242,8 @@ public class MediaController {
         if (mediaController != null) {
             Bundle updatePlayback = new Bundle();
             updatePlayback.putBoolean(BUNDLE_AUTO, false);
-            mediaController.getTransportControls().sendCustomAction(CUSTOM_ACTION_SPEED, updatePlayback);
+            mediaController.getTransportControls().sendCustomAction(CUSTOM_ACTION_SPEED,
+                    updatePlayback);
         }
     }
 
@@ -256,7 +258,8 @@ public class MediaController {
 
     private void startProgress(final long startPosition) {
         progressRelay.accept(startPosition);
-        progressDisposable = seconds.map(count -> ((long) (speed * (count + 1) * 1000)) + startPosition)
+        progressDisposable = seconds.map(count -> ((long) (speed * (count + 1) * 1000))
+                + startPosition)
                 .subscribeOn(rx.newThread())
                 .subscribe(progressRelay, Rx::onError);
     }

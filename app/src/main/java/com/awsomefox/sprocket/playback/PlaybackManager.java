@@ -130,8 +130,8 @@ class PlaybackManager implements Playback.Callback {
         @State int state = playback.getState();
         stateBuilder.setState(state, position, speed, androidClock.elapsedRealTime());
 
-        serviceCallback.onPlaybackStateUpdated(stateBuilder.build(), getMetadataBuilder(playback.getCurrentTrack()).build(), getQueueList());
-
+        serviceCallback.onPlaybackStateUpdated(stateBuilder.build(),
+                getMetadataBuilder(playback.getCurrentTrack()).build(), getQueueList());
 
         if (state == STATE_PLAYING || state == STATE_PAUSED) {
             serviceCallback.onNotificationRequired();
@@ -141,7 +141,8 @@ class PlaybackManager implements Playback.Callback {
     private List<MediaSessionCompat.QueueItem> getQueueList() {
         List<MediaSessionCompat.QueueItem> upNext = new ArrayList<>();
         for (Track track : queueManager.getUpNextQueue()) {
-            upNext.add(new MediaSessionCompat.QueueItem(getDescriptionBuilder(track).build(), track.queueItemId()));
+            upNext.add(new MediaSessionCompat.QueueItem(getDescriptionBuilder(track).build(),
+                    track.queueItemId()));
         }
         return upNext;
     }
@@ -152,7 +153,8 @@ class PlaybackManager implements Playback.Callback {
         if (track != null) {
             metadata.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, track.artistTitle())
                     .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, track.albumTitle())
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, String.format(Locale.US, "Chapter %d", track.index()))
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, String.format(Locale.US,
+                            "Chapter %d", track.index()))
                     .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, track.duration())
                     .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, track.thumb());
         }
@@ -172,8 +174,10 @@ class PlaybackManager implements Playback.Callback {
 
     private void addCustomActions(PlaybackStateCompat.Builder stateBuilder) {
         stateBuilder.addCustomAction(CUSTOM_ACTION_BACK, "Skip Back", R.drawable.skip_back);
-        stateBuilder.addCustomAction(CUSTOM_ACTION_FORWARD, "Skip Forward", R.drawable.skip_forward);
-        stateBuilder.addCustomAction(CUSTOM_ACTION_SPEED, "Speed Control", R.drawable.player_speed);
+        stateBuilder.addCustomAction(CUSTOM_ACTION_FORWARD, "Skip Forward",
+                R.drawable.skip_forward);
+        stateBuilder.addCustomAction(CUSTOM_ACTION_SPEED, "Speed Control",
+                R.drawable.player_speed);
     }
 
     private long getAvailableActions() {
@@ -270,7 +274,9 @@ class PlaybackManager implements Playback.Callback {
 
         void onNotificationRequired();
 
-        void onPlaybackStateUpdated(PlaybackStateCompat newState, MediaMetadataCompat metadataCompat, List<MediaSessionCompat.QueueItem> queueItemList);
+        void onPlaybackStateUpdated(PlaybackStateCompat newState,
+                                    MediaMetadataCompat metadataCompat,
+                                    List<MediaSessionCompat.QueueItem> queueItemList);
     }
 
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
@@ -298,7 +304,8 @@ class PlaybackManager implements Playback.Callback {
                     .duration(0L)
                     .viewOffset(0L)
                     .viewCount(1)
-                    .thumb(Strings.isBlank("track.thumb") ? null : Urls.addPathToUrl(uri, "track.thumb").toString())
+                    .thumb(Strings.isBlank("track.thumb") ? null : Urls.addPathToUrl(uri,
+                            "track.thumb").toString())
                     .source(Urls.addPathToUrl(uri, "track.media.part.key").toString())
                     .uri(uri)
                     .recent(true)

@@ -146,7 +146,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private void observeSession() {
         Rx.dispose(disposable);
-        disposable = Flowable.combineLatest(queueManager.queue(), mediaController.state(), mediaController.progress(),
+        disposable = Flowable.combineLatest(queueManager.queue(), mediaController.state(),
+                mediaController.progress(),
                 (pair, state, prog) -> {
                     boolean stopNotification = false;
 
@@ -226,8 +227,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
             createNotificationChannel();
         }
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(musicService,
-                CHANNEL_ID);
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(musicService, CHANNEL_ID);
 
         notificationBuilder.addAction(R.drawable.skip_back,
                 musicService.getString(R.string.description_skip_back), previousIntent);
@@ -239,19 +240,21 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
         notificationBuilder
                 .setStyle(new MediaStyle()
-                        .setShowActionsInCompactView(0, 1, 2) // show only play/pause in compact view
+                        .setShowActionsInCompactView(0, 1, 2)
                         .setMediaSession(mediaController.getSessionToken()))
                 .setDeleteIntent(stopCastIntent)
                 .setSmallIcon(R.drawable.sprocket_logo)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOnlyAlertOnce(true)
                 .setContentIntent(createContentIntent())
-                .setContentTitle(String.format(Locale.US, "Chapter %d", currentTrack.index()))
+                .setContentTitle(String.format(Locale.US, "Chapter %d",
+                        currentTrack.index()))
                 .setContentText(currentTrack.albumTitle());
 
         String castName = mediaController.getCastName();
         if (castName != null) {
-            String castInfo = musicService.getResources().getString(R.string.casting_to_device, castName);
+            String castInfo = musicService.getResources().getString(R.string.casting_to_device,
+                    castName);
             notificationBuilder.setSubText(castInfo);
             notificationBuilder.addAction(R.drawable.ic_notification_close,
                     musicService.getString(R.string.stop_casting), stopCastIntent);
@@ -274,7 +277,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
     }
 
     private void addPlayPauseAction(NotificationCompat.Builder builder) {
-        if (state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_BUFFERING) {
+        if (state == PlaybackStateCompat.STATE_PLAYING
+                || state == PlaybackStateCompat.STATE_BUFFERING) {
             builder.addAction(new NotificationCompat.Action(R.drawable.ic_notification_pause,
                     musicService.getString(R.string.label_pause), pauseIntent));
         } else {
@@ -291,7 +295,9 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private void setNotificationPlaybackState(NotificationCompat.Builder builder) {
         PlaybackStateCompat playbackState = mediaController.getPlaybackState();
-        if (playbackState == null || playbackState.getState() == STATE_STOPPED || playbackState.getState() == STATE_NONE || playbackState.getState() == PlaybackStateCompat.STATE_PAUSED) {
+        if (playbackState == null || playbackState.getState() == STATE_STOPPED
+                || playbackState.getState() == STATE_NONE
+                || playbackState.getState() == PlaybackStateCompat.STATE_PAUSED) {
             musicService.stopForeground(false);
             return;
         }
@@ -329,8 +335,10 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private void createNotificationChannel() {
         if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-                    musicService.getString(R.string.notification_channel), NotificationManager.IMPORTANCE_LOW);
-            channel.setDescription(musicService.getString(R.string.notification_channel_description));
+                    musicService.getString(R.string.notification_channel),
+                    NotificationManager.IMPORTANCE_LOW);
+            channel.setDescription(
+                    musicService.getString(R.string.notification_channel_description));
             notificationManager.createNotificationChannel(channel);
         }
     }

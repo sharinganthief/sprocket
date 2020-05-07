@@ -28,18 +28,21 @@ public class TrackComparatorTest {
 
   private TrackComparator comparator;
 
-  @Before public void setup() {
+  @Before
+  public void setup() {
     comparator = new TrackComparator();
   }
 
-  @Test public void compareTracks() {
+  @Test
+  public void compareTracks() {
     Track track1 = createTrackWithIndex(10);
     Track track2 = createTrackWithIndex(11);
     int result = comparator.compare(track1, track2);
     assertThat(result, lessThan(0));
   }
 
-  @Test public void compareTracksSameIndex() {
+  @Test
+  public void compareTracksSameIndex() {
     Track track1 = createTrackWithIndex(10);
     Track track2 = createTrackWithIndex(10);
     int result = comparator.compare(track1, track2);
@@ -48,19 +51,22 @@ public class TrackComparatorTest {
 
   private Track createTrackWithIndex(int index) {
     return Track.builder()
-        .queueItemId(100)
-        .libraryId("libraryId")
-        .key("key")
-        .ratingKey("ratingKey")
-        .parentKey("parentKey")
-        .title("title")
-        .albumTitle("albumTitle")
-        .artistTitle("artistTitle")
-        .index(index)
-        .duration(300)
-        .thumb("thumb")
-        .source("source")
-        .uri(HttpUrl.parse("https://plex.tv"))
-        .build();
+            .queueItemId(100)
+            .libraryId("libraryId")
+            .key("key")
+            .ratingKey("ratingKey")
+            .parentKey("parentKey")
+            .title("title")
+            .albumTitle("albumTitle")
+            .artistTitle("artistTitle")
+            .index(index)
+            .duration(300)
+            .thumb("thumb")
+            .recent(true)
+            .viewCount(0)
+            .viewOffset(100L)
+            .source("source")
+            .uri(HttpUrl.parse("https://plex.tv"))
+            .build();
   }
 }

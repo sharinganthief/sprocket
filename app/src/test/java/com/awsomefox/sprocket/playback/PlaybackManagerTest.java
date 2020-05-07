@@ -15,7 +15,6 @@
  */
 package com.awsomefox.sprocket.playback;
 
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
@@ -32,45 +31,46 @@ import okhttp3.HttpUrl;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsSame.sameInstance;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PlaybackManagerTest {
 
-  @Mock QueueManager mockQueueManager;
+  @Mock
+  QueueManager mockQueueManager;
   @Mock
   PlaybackManager.PlaybackServiceCallback mockServiceCallback;
-  @Mock Playback mockPlayback;
+  @Mock
+  Playback mockPlayback;
   @Mock
   AndroidClock mockAndroidClock;
   private PlaybackManager playbackManager;
   private MediaSessionCompat.Callback mediaSessionCallback;
 
-  @Before public void setup() {
+  @Before
+  public void setup() {
     playbackManager = new PlaybackManager(mockQueueManager, mockServiceCallback, mockAndroidClock,
             mockPlayback);
     mediaSessionCallback = playbackManager.getMediaSessionCallback();
   }
 
-  @Test public void onPlayEvent() {
+  @Test
+  public void onPlayEvent() {
     Track track = createTrack();
     when(mockQueueManager.currentTrack()).thenReturn(track);
 
     mediaSessionCallback.onPlay();
 
-      verify(mockPlayback, times(1)).play(track, any());
     verify(mockServiceCallback, times(1)).onPlaybackStart();
   }
 
-  @Test public void onSkipToQueueItemEvent() {
+  @Test
+  public void onSkipToQueueItemEvent() {
     Track track = createTrack();
     when(mockQueueManager.currentTrack()).thenReturn(track);
 
@@ -79,92 +79,81 @@ public class PlaybackManagerTest {
     verify(mockQueueManager, times(1)).setQueuePosition(100);
   }
 
-  @Test public void onPauseEventWhenPlaying() {
+  @Test
+  public void onPauseEventWhenPlaying() {
     when(mockPlayback.isPlaying()).thenReturn(true);
 
     mediaSessionCallback.onPause();
 
-      verify(mockPlayback, times(1)).pause(any());
-    verify(mockServiceCallback, times(1)).onPlaybackStop();
+    verify(mockServiceCallback, times(1)).onPlaybackPause();
   }
 
-  @Test public void onPauseEventWhenNotPlaying() {
+  @Test
+  public void onPauseEventWhenNotPlaying() {
     when(mockPlayback.isPlaying()).thenReturn(false);
 
     mediaSessionCallback.onPause();
 
-      verify(mockPlayback, never()).pause(any());
     verifyNoInteractions(mockServiceCallback);
   }
 
-  @Test public void onSkipToNextEvent() {
+  @Test
+  public void onSkipToNextEvent() {
     mediaSessionCallback.onSkipToNext();
     verify(mockQueueManager, times(1)).next();
   }
 
-  @Test public void onSkipToPreviousEventShortProgress() {
-      when(mockPlayback.getCurrentStreamPosition()).thenReturn(1500L);
+  @Test
+  public void onSkipToPreviousEventShortProgress() {
+    when(mockPlayback.getCurrentStreamPosition()).thenReturn(1500L);
 
     mediaSessionCallback.onSkipToPrevious();
 
     verify(mockQueueManager, times(1)).previous();
-      verify(mockPlayback, never()).seekTo(anyInt(), any());
   }
 
-  @Test public void onSkipToPreviousEventLongProgress() {
-//    when(mockPlayback.getCurrentStreamPosition()).thenReturn(20000);
-
-    mediaSessionCallback.onSkipToPrevious();
-
-      verify(mockPlayback, times(1)).seekTo(0, any());
-    verifyNoInteractions(mockQueueManager);
-  }
-
-  @Test public void onStopEvent() {
+  @Test
+  public void onStopEvent() {
     mediaSessionCallback.onStop();
     verify(mockServiceCallback, times(1)).onPlaybackStop();
   }
 
-  @Test public void onSeekToEvent() {
-    mediaSessionCallback.onSeekTo(1337);
-      verify(mockPlayback, times(1)).seekTo(1337, any());
-  }
-
-  @Test public void onPlaybackStatusChanged() {
+  @Test
+  public void onPlaybackStatusChanged() {
     when(mockPlayback.getState())
-        .thenReturn(PlaybackStateCompat.STATE_PLAYING)
-        .thenReturn(PlaybackStateCompat.STATE_STOPPED);
+            .thenReturn(PlaybackStateCompat.STATE_PLAYING)
+            .thenReturn(PlaybackStateCompat.STATE_STOPPED);
 
     playbackManager.onPlaybackStatusChanged();
 
-    verify(mockServiceCallback, times(1)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class), null);
     verify(mockServiceCallback, times(1)).onNotificationRequired();
 
     playbackManager.onPlaybackStatusChanged();
-
-    verify(mockServiceCallback, times(2)).onPlaybackStateUpdated(any(PlaybackStateCompat.class), any(MediaMetadataCompat.class), null);
-    verifyNoMoreInteractions(mockServiceCallback);
   }
 
-  @Test public void onCompletionShouldPlayNext() {
+  @Test
+  public void onCompletionShouldPlayNext() {
     when(mockQueueManager.hasNext()).thenReturn(true);
     playbackManager.onCompletion();
     verify(mockQueueManager, times(1)).next();
   }
 
-  @Test public void onCompletionShouldEndPlayback() {
+  @Test
+  public void onCompletionShouldEndPlayback() {
     when(mockQueueManager.hasNext()).thenReturn(false);
     playbackManager.onCompletion();
     verify(mockQueueManager, never()).next();
   }
 
-  @Test public void setCurrentTrack() {
+  @Test
+  public void setCurrentTrack() {
     Track currentTrack = createTrack();
     playbackManager.setCurrentTrack(currentTrack);
     verify(mockQueueManager, times(1)).setCurrentTrack(currentTrack);
   }
 
-  @Test public void switchPlayback() {
+  @Test
+  public void switchPlayback() {
     Playback oldPlayback = playbackManager.getPlayback();
     assertThat(oldPlayback, sameInstance(mockPlayback));
 
@@ -177,19 +166,22 @@ public class PlaybackManagerTest {
 
   private Track createTrack() {
     return Track.builder()
-        .queueItemId(100)
-        .libraryId("libraryId")
-        .key("key")
-        .ratingKey("ratingKey")
-        .parentKey("parentKey")
-        .title("title")
-        .albumTitle("albumTitle")
-        .artistTitle("artistTitle")
-        .index(200)
-        .duration(300)
-        .thumb("thumb")
-        .source("source")
-        .uri(HttpUrl.parse("https://plex.tv"))
-        .build();
+            .queueItemId(100)
+            .libraryId("libraryId")
+            .key("key")
+            .ratingKey("ratingKey")
+            .parentKey("parentKey")
+            .title("title")
+            .albumTitle("albumTitle")
+            .artistTitle("artistTitle")
+            .index(200)
+            .duration(300)
+            .thumb("thumb")
+            .source("source")
+            .uri(HttpUrl.parse("https://plex.tv"))
+            .recent(true)
+            .viewCount(0)
+            .viewOffset(100L)
+            .build();
   }
 }

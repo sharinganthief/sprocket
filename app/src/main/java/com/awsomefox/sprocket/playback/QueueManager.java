@@ -60,7 +60,8 @@ public class QueueManager {
         this.queue = queue;
         setQueuePosition(queueItemId);
         //set the persisted offset
-        if (currentOffest != 0L && queue.get(position).viewOffset() != 0L && currentOffest > queue.get(position).viewOffset()) {
+        if (currentOffest != 0L && queue.get(position).viewOffset() != 0L
+                && currentOffest > queue.get(position).viewOffset()) {
             queue.set(position, queue.get(position).toBuilder().viewOffset(currentOffest).build());
         }
         notifyQueue();

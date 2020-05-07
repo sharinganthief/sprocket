@@ -52,7 +52,8 @@ public class MusicAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     } else if (viewType == Type.ALBUM) {
       return new BookViewHolder(inflater.inflate(R.layout.item_album, parent, false), this);
     } else if (viewType == Type.RECENT) {
-      return new RecentViewHolder(inflater.inflate(R.layout.item_track_recent, parent, false), this);
+        return new RecentViewHolder(inflater.inflate(R.layout.item_track_recent, parent, false),
+                this);
     } else if (viewType == Type.TRACK) {
       return new TrackViewHolder(inflater.inflate(R.layout.item_track, parent, false), this);
     } else if (viewType == Type.MEDIA_TYPE) {

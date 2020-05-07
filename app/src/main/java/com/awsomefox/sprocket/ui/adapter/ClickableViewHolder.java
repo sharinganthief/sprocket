@@ -21,11 +21,12 @@ import android.widget.ImageView;
 /**
  * ClickableViewHolder adds a click listener to the default ViewHolder
  */
-public abstract class ClickableViewHolder<T> extends BaseViewHolder<T> implements View.OnClickListener {
+public abstract class ClickableViewHolder<T> extends BaseViewHolder<T>
+        implements View.OnClickListener {
 
   private final ViewHolderListener listener;
     public static final String NONE = "none";
-    public static final String PARTIAL = "partial";
+    static final String PARTIAL = "partial";
     public static final String FULL = "full";
 
   ClickableViewHolder(View view, ViewHolderListener listener) {
@@ -50,6 +51,7 @@ public abstract class ClickableViewHolder<T> extends BaseViewHolder<T> implement
                 case FULL:
                     listener.onMarkUnstarted(position, iv);
                     break;
+                default:
             }
         }
     }

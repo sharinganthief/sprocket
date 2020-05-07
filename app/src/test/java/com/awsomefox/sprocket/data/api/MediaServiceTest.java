@@ -78,14 +78,14 @@ public class MediaServiceTest {
     @Test
     public void recentAuthors() {
         media.chaptersInProgress(URL, "libKey");
-    assertThat(api.actual, is("https://plex.tv/library/sections/libKey/all?viewCount%3E=1&type=8" +
-        "&sort=lastViewedAt:desc&X-Plex-Token=token"));
+      assertThat(api.actual, is("https://plex.tv/library/sections/libKey/search?viewOffset%3E=" +
+              "10&type=10&sort=updatedAt:asc&X-Plex-Token=token"));
   }
 
   @Test public void firstCharacter() {
     media.firstCharacter(URL, "libKey", "mediaKey");
     assertThat(api.actual, is("https://plex.tv/library/sections/libKey/firstCharacter?" +
-        "X-Plex-Token=token&type=mediaKey"));
+            "X-Plex-Token=token&type=mediaKey&sort=titleSort"));
   }
 
   @Test public void timeline() {

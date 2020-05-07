@@ -37,18 +37,20 @@ public class QueueManagerTest {
   private QueueManager queueManager;
   private List<Track> queue;
 
-  @Before public void setup() {
-      queueManager = new QueueManager();
+  @Before
+  public void setup() {
+    queueManager = new QueueManager();
     queue = Arrays.asList(
-        createTrack(100),
-        createTrack(200),
-        createTrack(300),
-        createTrack(400),
-        createTrack(500));
-      queueManager.setQueue(new ArrayList<>(queue), 1000, 0L);
+            createTrack(100),
+            createTrack(200),
+            createTrack(300),
+            createTrack(400),
+            createTrack(500));
+    queueManager.setQueue(new ArrayList<>(queue), 1000, 0L);
   }
 
-  @Test public void currentQueue() {
+  @Test
+  public void currentQueue() {
     TestSubscriber<Pair<List<Track>, Integer>> test = queueManager.queue().take(1).test();
     test.awaitTerminalEvent();
 
@@ -56,16 +58,18 @@ public class QueueManagerTest {
     int actualPosition = test.values().get(0).second;
 
     assertThat(actualQueue, IsIterableContainingInOrder.contains(
-        queue.get(0), queue.get(1), queue.get(2), queue.get(3), queue.get(4)));
+            queue.get(0), queue.get(1), queue.get(2), queue.get(3), queue.get(4)));
     assertThat(actualPosition, is(0));
   }
 
-  @Test public void currentTrack() {
+  @Test
+  public void currentTrack() {
     Track actualTrack = queueManager.currentTrack();
     assertThat(actualTrack, is(queue.get(0)));
   }
 
-  @Test public void setQueuePosition() {
+  @Test
+  public void setQueuePosition() {
     queueManager.setQueuePosition(queue.get(3).queueItemId());
     assertThat(queueManager.currentTrack(), is(queue.get(3)));
 
@@ -76,12 +80,14 @@ public class QueueManagerTest {
     assertThat(actualPosition, is(3));
   }
 
-  @Test public void setExistingTrack() {
+  @Test
+  public void setExistingTrack() {
     queueManager.setCurrentTrack(queue.get(3));
     assertThat(queueManager.currentTrack(), is(queue.get(3)));
   }
 
-  @Test public void setNewTrack() {
+  @Test
+  public void setNewTrack() {
     Track expectedTrack = createTrack(20);
     queueManager.setCurrentTrack(expectedTrack);
     assertThat(queueManager.currentTrack(), is(expectedTrack));
@@ -89,19 +95,22 @@ public class QueueManagerTest {
 
   private Track createTrack(int index) {
     return Track.builder()
-        .queueItemId(index * 10)
-        .libraryId("libraryId")
-        .key("key")
-        .ratingKey("ratingKey")
-        .parentKey("parentKey")
-        .title("title")
-        .albumTitle("albumTitle")
-        .artistTitle("artistTitle")
-        .index(index)
-        .duration(30000)
-        .thumb("thumb")
-        .source("source")
-        .uri(HttpUrl.parse("https://plex.tv"))
-        .build();
+            .queueItemId(index * 10)
+            .libraryId("libraryId")
+            .key("key")
+            .ratingKey("ratingKey")
+            .parentKey("parentKey")
+            .title("title")
+            .albumTitle("albumTitle")
+            .artistTitle("artistTitle")
+            .index(index)
+            .duration(30000)
+            .thumb("thumb")
+            .source("source")
+            .uri(HttpUrl.parse("https://plex.tv"))
+            .recent(true)
+            .viewCount(0)
+            .viewOffset(100L)
+            .build();
   }
 }

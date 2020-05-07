@@ -36,7 +36,7 @@ class QueueViewHolder extends ClickableViewHolder<Track> {
     @BindView(R.id.track_duration)
     TextView duration;
     @BindString(R.string.chapter_title)
-    String chapter_title;
+    String chapterTitle;
 
     QueueViewHolder(View view, ViewHolderListener listener) {
         super(view, listener);
@@ -44,7 +44,7 @@ class QueueViewHolder extends ClickableViewHolder<Track> {
 
     @Override
     void bindModel(@NonNull Track track) {
-        title.setText(String.format(chapter_title, track.index()));
+        title.setText(String.format(chapterTitle, track.index()));
         subtitle.setText(track.albumTitle());
         duration.setText(DateUtils.formatElapsedTime(track.duration() / 1000));
     }

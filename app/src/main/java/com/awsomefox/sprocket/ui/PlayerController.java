@@ -61,7 +61,8 @@ import butterknife.OnClick;
 import static com.bluelinelabs.conductor.rxlifecycle2.ControllerEvent.DETACH;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class PlayerController extends BaseMediaController implements QueueAdapter.OnTrackClickListener {
+public class PlayerController extends BaseMediaController
+        implements QueueAdapter.OnTrackClickListener {
 
     private static final int[] PLAY = {-R.attr.state_pause};
     private static final int[] PAUSE = {R.attr.state_pause};
@@ -110,9 +111,9 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
     @BindString(R.string.description_track)
     String descTrack;
     @BindString(R.string.chapter_title)
-    String chapter_title;
+    String chapterTitle;
     @BindString(R.string.dot_spacer)
-    String dot_spacer;
+    String dotSpacer;
     @Inject
     Rx rx;
     private boolean isSeeking;
@@ -216,7 +217,8 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
         ImageView actionView = (ImageView) item.getActionView();
         actionView.setOnClickListener(view -> {
             LayoutInflater inflater = Objects.requireNonNull(getActivity()).getLayoutInflater();
-            AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
+            AlertDialog.Builder builder = new AlertDialog.Builder(
+                    Objects.requireNonNull(getActivity()));
             builder.setView(inflater.inflate(R.layout.speed_control, null))
                     .setTitle("Set Playback Speed")
                     .setPositiveButton(R.string.cast_tracks_chooser_dialog_ok, (dialog, id) -> {
@@ -228,7 +230,8 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
             SeekBar speedBar = dialog.findViewById(R.id.speed_seek_bar);
             TextView speedValue = dialog.findViewById(R.id.speed_value);
             Objects.requireNonNull(speedValue).setText(String.valueOf(mediaController.getSpeed()));
-            Objects.requireNonNull(speedBar).setProgress((int) (mediaController.getSpeed() * 10 - 5));
+            Objects.requireNonNull(speedBar).setProgress(
+                    (int) (mediaController.getSpeed() * 10 - 5));
             speedBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar speedBar, int newSpeed, boolean fromUser) {
@@ -262,14 +265,16 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
                 mediaController.updatePlaySpeed();
                 speedValue.setText(String.valueOf(queueManager.getSpeed()));
                 preferences.edit().putFloat(SPEED, queueManager.getSpeed()).apply();
-                Objects.requireNonNull(speedBar).setProgress((int) (mediaController.getSpeed() * 10 - 5));
+                Objects.requireNonNull(speedBar).setProgress(
+                        (int) (mediaController.getSpeed() * 10 - 5));
             });
             Objects.requireNonNull(higherButton).setOnClickListener(v -> {
                 updateSpeed(mediaController.getSpeed() + .1f);
                 mediaController.updatePlaySpeed();
                 speedValue.setText(String.valueOf(queueManager.getSpeed()));
                 preferences.edit().putFloat(SPEED, queueManager.getSpeed()).apply();
-                Objects.requireNonNull(speedBar).setProgress((int) (mediaController.getSpeed() * 10 - 5));
+                Objects.requireNonNull(speedBar).setProgress(
+                        (int) (mediaController.getSpeed() * 10 - 5));
             });
         });
 
@@ -370,8 +375,8 @@ public class PlayerController extends BaseMediaController implements QueueAdapte
         seekBar.setMax((int) track.duration() / 1000);
         totalTime.setText(DateUtils.formatElapsedTime(track.duration() / 1000));
 
-        authorBook.setText(String.format(dot_spacer, track.albumTitle(), track.artistTitle()));
-        trackTitle.setText(String.format(chapter_title, track.index()));
+        authorBook.setText(String.format(dotSpacer, track.albumTitle(), track.artistTitle()));
+        trackTitle.setText(String.format(chapterTitle, track.index()));
         persistCurrentTrack(track);
     }
 
