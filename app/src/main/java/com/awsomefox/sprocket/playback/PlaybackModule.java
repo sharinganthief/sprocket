@@ -30,7 +30,7 @@ public class PlaybackModule {
 
     @Provides
     @Singleton
-    QueueManager provideQueueManager() {
-        return new QueueManager();
+    ContextManager provideQueueManager() {
+        return new ContextManager();
   }
 }

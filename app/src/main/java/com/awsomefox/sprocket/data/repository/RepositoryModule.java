@@ -16,7 +16,10 @@
 package com.awsomefox.sprocket.data.repository;
 
 import com.awsomefox.sprocket.data.api.MediaService;
+import com.awsomefox.sprocket.data.local.LocalDB;
+import com.awsomefox.sprocket.data.local.TrackDAO;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import dagger.Module;
@@ -24,7 +27,26 @@ import dagger.Provides;
 
 @Module
 public class RepositoryModule {
-  @Provides @Singleton MusicRepository provideMusicRepository(MediaService media) {
-    return new MusicRepositoryImpl(media);
-  }
+
+    @Provides
+    @Singleton
+    @Named("remote")
+    MusicRepository provideRemoteMusicRepository(MediaService media) {
+        return new RemoteMusicRepositoryImpl(media);
+    }
+
+    @Provides
+    @Singleton
+    @Named("local")
+    MusicRepository provideLocalMusicRepository(LocalDB localDB) {
+        return new LocalMusicRepositoryImpl(localDB);
+    }
+
+    @Provides
+    @Singleton
+    MusicRepository provideMusicRepository(
+            @Named("remote") MusicRepository remoteRepository,
+            @Named("local") MusicRepository localRepository) {
+        return new MusicRepositoryImpl(remoteRepository, localRepository);
+    }
 }

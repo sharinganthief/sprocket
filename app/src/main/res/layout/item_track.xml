@@ -8,14 +8,15 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_weight="10"
             android:layout_height="wrap_content"
             android:layout_gravity="start|center_vertical"
+            android:layout_weight="10"
             android:orientation="vertical">
 
             <TextView
@@ -47,15 +48,31 @@
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/listen_track"
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:padding="10dp"
-            android:scaleType="fitCenter"
-            android:tint="@color/accent"
-            app:srcCompat="@drawable/no_listen"
-            android:layout_weight="1" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/listen_track"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="4dp"
+                android:tint="@color/accent"
+                app:srcCompat="@drawable/no_listen"
+                android:contentDescription="@string/mark_as_seen_unseen" />
+
+            <ImageView
+                android:id="@+id/download_track"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="4dp"
+                android:tint="@color/accent"
+                app:srcCompat="@drawable/not_downloaded"
+                android:contentDescription="@string/download_chapter" />
+        </LinearLayout>
     </LinearLayout>
 
 </FrameLayout>

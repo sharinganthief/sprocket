@@ -32,6 +32,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -73,16 +74,22 @@ import timber.log.Timber;
 import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
 import static android.support.v4.media.MediaMetadataCompat.METADATA_KEY_ALBUM;
 import static android.support.v4.media.session.PlaybackStateCompat.STATE_NONE;
+import static android.support.v4.media.session.PlaybackStateCompat.STATE_STOPPED;
 
 public class MusicService extends Service implements PlaybackManager.PlaybackServiceCallback {
 
     public static final String ACTION_STOP_CASTING = "com.awsomefox.sprocket.ACTION_STOP_CASTING";
 
     private static final int STOP_DELAY = 30000;
+    public static final String TRACK_PROGRESS = "com.awsomefox.sprocket.trackProgress";
+    public static final String TRACK_URI = "com.awsomefox.sprocket.trackUri";
+    public static final String TRACK_KEY = "com.awsomefox.sprocket.trackKey";
+    public static final String TRACK_PARENT_KEY = "com.awsomefox.sprocket.trackParentKey";
+    public static final String TRACK_LIBRARY_ID = "com.awsomefox.sprocket.trackLibraryId";
     private final IBinder binder = new LocalBinder();
     private final DelayedStopHandler delayedStopHandler = new DelayedStopHandler(this);
     @Inject
-    public QueueManager queueManager;
+    public ContextManager contextManager;
     @Inject
     MediaController mediaController;
     @Inject
@@ -142,7 +149,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
             Timber.e(e, "Could not create MediaController");
             throw new IllegalStateException();
         }
-        playbackManager = new PlaybackManager(queueManager, this,
+        playbackManager = new PlaybackManager(contextManager, this,
                 AndroidClock.DEFAULT, playback);
 
         session.setCallback(playbackManager.getMediaSessionCallback());
@@ -155,7 +162,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
         playbackManager.updatePlaybackState();
 
         mediaNotificationManager = new MediaNotificationManager(this, mediaController,
-                queueManager, rx);
+                contextManager, rx);
 
         castSessionManager = CastContext.getSharedInstance(this).getSessionManager();
         castSessionManagerListener = new CastSessionManagerListener();
@@ -165,37 +172,37 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
         preferences = Objects.requireNonNull(getApplicationContext()).getSharedPreferences(
                 "playback-state", Context.MODE_PRIVATE);
-        timelineManager = new TimelineManager(mediaController, queueManager, media, rx,
-                preferences);
+        timelineManager = new TimelineManager(mediaController, contextManager, media,
+                musicRepository, rx, preferences);
         instance = this;
         disposables = new CompositeDisposable();
         serverManager.refresh();
         if (mediaController.getPlaybackState() == null
-                || (mediaController.getPlaybackState().getState() == STATE_NONE)) {
+                || mediaController.getPlaybackState().getState() == STATE_NONE
+                || mediaController.getPlaybackState().getState() == STATE_STOPPED) {
             Timber.d("Restoring state");
             Track track = getPersistedTrack();
             disposables.add(musicRepository.createPlayQueue(track)
                     .compose(rx.singleSchedulers())
                     .subscribe(pair -> {
                         //restore playing
-                        queueManager.setQueue(pair.first, pair.second, getPersistedProgress());
+                        contextManager.setQueue(pair.first, pair.second, getPersistedProgress());
                         updateSpeed(preferences.getFloat(PlayerController.SPEED, 1.0f));
-                        mediaController.play();
-                        mediaController.pause();
+                        mediaController.prepare();
                     }, Rx::onError));
         }
     }
 
     void updateSpeed(float speed) {
-        queueManager.setSpeed(speed);
+        contextManager.setSpeed(speed);
         mediaController.setSpeed(speed);
     }
 
     Track getPersistedTrack() {
-        HttpUrl uri = HttpUrl.get(preferences.getString("trackUri", "http://plex.com"));
-        String key = preferences.getString("trackKey", "1234");
-        String parentKey = preferences.getString("trackParentKey", "1234");
-        String libraryId = preferences.getString("trackLibraryId", "1234");
+        HttpUrl uri = HttpUrl.get(preferences.getString(TRACK_URI, "http://plex.com"));
+        String key = preferences.getString(TRACK_KEY, "1234");
+        String parentKey = preferences.getString(TRACK_PARENT_KEY, "1234");
+        String libraryId = preferences.getString(TRACK_LIBRARY_ID, "1234");
         return Track.builder().queueItemId(0)
                 .libraryId(libraryId)
                 .key(key)
@@ -217,7 +224,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
     }
 
     long getPersistedProgress() {
-        return preferences.getLong("trackProgress", 0L);
+        return preferences.getLong(TRACK_PROGRESS, 0L);
     }
 
     @Override
@@ -278,7 +285,7 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
         disposables.add(musicRepository.createPlayQueue(track)
                 .subscribeOn(Schedulers.io())
                 .subscribe(pair -> {
-                    queueManager.setQueue(pair.first, pair.second, 0L);
+                    contextManager.setQueue(pair.first, pair.second, 0L);
                     updateSpeed(speed);
                     mediaController.play();
                 }, Rx::onError));
@@ -300,8 +307,12 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
 
     @Override
     public void onPlaybackPause() {
-        Timber.d("ON PLAYBAKC pause");
         stopForeground(false);
+    }
+
+    @Override
+    public void onPrepare() {
+        session.setActive(true);
     }
 
     @Override
@@ -313,6 +324,13 @@ public class MusicService extends Service implements PlaybackManager.PlaybackSer
         delayedStopHandler.removeCallbacksAndMessages(null);
         delayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
         stopForeground(false);
+    }
+
+    @Override
+    public void onNewSpeed() {
+        preferences.edit().putFloat(PlayerController.SPEED, contextManager.getSpeed()).apply();
+        Toast.makeText(getApplicationContext(), "New Speed: "
+                + contextManager.getSpeed(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

@@ -162,9 +162,21 @@ class LocalPlayback implements Playback, Player.EventListener,
   @Override
   public void play(Track track, float speed) {
     Timber.d("play %s", track);
-    playOnFocusGain = true;
+
     tryToGetAudioFocus();
     registerAudioNoisyReceiver();
+    prepare(track, speed, true);
+
+      // If we are streaming from the internet, we want to hold a Wifi lock, which prevents the
+      // Wifi radio from going to sleep while the song is playing.
+      wifiLock.acquire();
+
+  }
+
+  @Override
+  public void prepare(Track track, float speed, boolean playOnFocus) {
+    Timber.d("play %s", track);
+    playOnFocusGain = playOnFocus;
     boolean mediaHasChanged = !track.equals(currentTrack);
     if (mediaHasChanged) {
       currentTrack = track;
@@ -178,9 +190,9 @@ class LocalPlayback implements Playback, Player.EventListener,
         exoPlayer.addListener(this);
       }
       AudioAttributes audioAttributes = new AudioAttributes.Builder()
-          .setContentType(CONTENT_TYPE_MUSIC)
-          .setUsage(USAGE_MEDIA)
-          .build();
+              .setContentType(CONTENT_TYPE_MUSIC)
+              .setUsage(USAGE_MEDIA)
+              .build();
       exoPlayer.setAudioAttributes(audioAttributes);
 
       Uri uri = Uri.parse(track.source());
@@ -193,12 +205,7 @@ class LocalPlayback implements Playback, Player.EventListener,
       PlaybackParameters param = new PlaybackParameters(speed);
       exoPlayer.setPlaybackParameters(param);
       exoPlayer.prepare(source, !hasPlexStart, !hasPlexStart);
-
-      // If we are streaming from the internet, we want to hold a Wifi lock, which prevents the
-      // Wifi radio from going to sleep while the song is playing.
-      wifiLock.acquire();
     }
-
     configurePlayerState();
   }
 

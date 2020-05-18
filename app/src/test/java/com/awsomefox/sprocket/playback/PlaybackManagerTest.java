@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 public class PlaybackManagerTest {
 
   @Mock
-  QueueManager mockQueueManager;
+  ContextManager mockContextManager;
   @Mock
   PlaybackManager.PlaybackServiceCallback mockServiceCallback;
   @Mock
@@ -54,7 +54,7 @@ public class PlaybackManagerTest {
 
   @Before
   public void setup() {
-    playbackManager = new PlaybackManager(mockQueueManager, mockServiceCallback, mockAndroidClock,
+    playbackManager = new PlaybackManager(mockContextManager, mockServiceCallback, mockAndroidClock,
             mockPlayback);
     mediaSessionCallback = playbackManager.getMediaSessionCallback();
   }
@@ -62,7 +62,7 @@ public class PlaybackManagerTest {
   @Test
   public void onPlayEvent() {
     Track track = createTrack();
-    when(mockQueueManager.currentTrack()).thenReturn(track);
+    when(mockContextManager.currentTrack()).thenReturn(track);
 
     mediaSessionCallback.onPlay();
 
@@ -72,11 +72,11 @@ public class PlaybackManagerTest {
   @Test
   public void onSkipToQueueItemEvent() {
     Track track = createTrack();
-    when(mockQueueManager.currentTrack()).thenReturn(track);
+    when(mockContextManager.currentTrack()).thenReturn(track);
 
     mediaSessionCallback.onSkipToQueueItem(100);
 
-    verify(mockQueueManager, times(1)).setQueuePosition(100);
+    verify(mockContextManager, times(1)).setQueuePosition(100);
   }
 
   @Test
@@ -100,7 +100,7 @@ public class PlaybackManagerTest {
   @Test
   public void onSkipToNextEvent() {
     mediaSessionCallback.onSkipToNext();
-    verify(mockQueueManager, times(1)).next();
+    verify(mockContextManager, times(1)).next();
   }
 
   @Test
@@ -109,7 +109,7 @@ public class PlaybackManagerTest {
 
     mediaSessionCallback.onSkipToPrevious();
 
-    verify(mockQueueManager, times(1)).previous();
+    verify(mockContextManager, times(1)).previous();
   }
 
   @Test
@@ -133,23 +133,23 @@ public class PlaybackManagerTest {
 
   @Test
   public void onCompletionShouldPlayNext() {
-    when(mockQueueManager.hasNext()).thenReturn(true);
+    when(mockContextManager.hasNext()).thenReturn(true);
     playbackManager.onCompletion();
-    verify(mockQueueManager, times(1)).next();
+    verify(mockContextManager, times(1)).next();
   }
 
   @Test
   public void onCompletionShouldEndPlayback() {
-    when(mockQueueManager.hasNext()).thenReturn(false);
+    when(mockContextManager.hasNext()).thenReturn(false);
     playbackManager.onCompletion();
-    verify(mockQueueManager, never()).next();
+    verify(mockContextManager, never()).next();
   }
 
   @Test
   public void setCurrentTrack() {
     Track currentTrack = createTrack();
     playbackManager.setCurrentTrack(currentTrack);
-    verify(mockQueueManager, times(1)).setCurrentTrack(currentTrack);
+    verify(mockContextManager, times(1)).setCurrentTrack(currentTrack);
   }
 
   @Test

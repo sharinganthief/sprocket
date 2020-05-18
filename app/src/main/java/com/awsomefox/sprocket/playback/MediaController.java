@@ -163,6 +163,12 @@ public class MediaController {
         }
     }
 
+    public void prepare() {
+        if (mediaController != null) {
+            mediaController.getTransportControls().prepare();
+        }
+    }
+
     public void stop() {
         if (mediaController != null) {
             mediaController.getTransportControls().stop();

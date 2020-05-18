@@ -28,9 +28,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import butterknife.BindString;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
@@ -71,6 +73,10 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
 
     private MusicService musicService;
     private Handler handler = new Handler();
+
+
+    @BindString(R.string.chapter_title)
+    String chapterTitle;
 
     @Override
     public void onCreate() {
@@ -300,11 +306,18 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
             if (item instanceof Book) {
                 Book book = (Book) item;
                 currentBooks.put(book.ratingKey(), book);
+                Uri bookThumb;
+                if (book.thumb() != null) {
+                    bookThumb = Uri.parse(Uri.decode(book.thumb()));
+                } else {
+                    bookThumb = Uri.parse("android.resource://com.awsomefox.sprocket/"
+                            + R.drawable.books);
+                }
                 MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                         .setTitle(book.title())
                         .setSubtitle(book.artistTitle())
                         .setMediaId(CHAPTERS_FROM_BOOK_PREFIX + book.ratingKey())
-                        .setIconUri(Uri.parse(Uri.decode(book.thumb())))
+                        .setIconUri(bookThumb)
                         .build();
                 mediaItems.add(new MediaBrowserCompat.MediaItem(description,
                         MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
@@ -313,11 +326,18 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 bookStyle.putInt(CONTENT_STYLE_BROWSABLE_HINT, CONTENT_STYLE_GRID_ITEM_HINT_VALUE);
                 Author author = (Author) item;
                 currentAuthors.put(author.ratingKey(), author);
+                Uri authorThumb;
+                if (author.thumb() != null) {
+                    authorThumb = Uri.parse(Uri.decode(author.thumb()));
+                } else {
+                    authorThumb = Uri.parse("android.resource://com.awsomefox.sprocket/"
+                            + R.drawable.authors);
+                }
                 MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                         .setTitle(author.title())
                         .setMediaId(BOOKS_FROM_AUTHOR_PREFIX + author.ratingKey())
                         .setExtras(bookStyle)
-                        .setIconUri(Uri.parse(Uri.decode(author.thumb())))
+                        .setIconUri(authorThumb)
                         .build();
                 mediaItems.add(new MediaBrowserCompat.MediaItem(description,
                         MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
@@ -329,14 +349,21 @@ public class AutoMediaBrowserService extends MediaBrowserServiceCompat {
                 extras.putString(BUNDLE_TRACK_PARENT_KEY, track.parentKey());
                 extras.putString(BUNDLE_TRACK_LIBRARY_ID, track.libraryId());
                 extras.putFloat(SPEED,
-                        musicService.queueManager.getSpeed());
+                        musicService.contextManager.getSpeed());
+                Uri trackThumb;
+                if (track.thumb() != null) {
+                    trackThumb = Uri.parse(Uri.decode(track.thumb()));
+                } else {
+                    trackThumb = Uri.parse("android.resource://com.awsomefox.sprocket/"
+                            + R.drawable.books);
+                }
                 MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                        .setTitle(track.title())
-                        .setSubtitle(track.artistTitle())
+                        .setTitle(String.format(Locale.US, "Chapter %d", track.index()))
+                        .setSubtitle(track.albumTitle())
                         .setDescription(DateUtils.formatElapsedTime(track.viewOffset() / 1000)
                                 + "/" + DateUtils.formatElapsedTime(track.duration() / 1000))
                         .setMediaId(track.ratingKey())
-                        .setIconUri(Uri.parse(Uri.decode(track.thumb())))
+                        .setIconUri(trackThumb)
                         .setExtras(extras)
                         .build();
                 mediaItems.add(new MediaBrowserCompat.MediaItem(description,

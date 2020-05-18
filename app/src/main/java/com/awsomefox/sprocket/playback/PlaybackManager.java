@@ -65,15 +65,15 @@ import static com.awsomefox.sprocket.ui.PlayerController.SPEED;
 
 class PlaybackManager implements Playback.Callback {
 
-    private final QueueManager queueManager;
+    private final ContextManager contextManager;
     private final MediaSessionCallback sessionCallback;
     private final PlaybackServiceCallback serviceCallback;
     private final AndroidClock androidClock;
     private Playback playback;
 
-    PlaybackManager(QueueManager queueManager, PlaybackServiceCallback serviceCallback,
+    PlaybackManager(ContextManager contextManager, PlaybackServiceCallback serviceCallback,
                     AndroidClock androidClock, Playback playback) {
-        this.queueManager = queueManager;
+        this.contextManager = contextManager;
         this.serviceCallback = serviceCallback;
         this.androidClock = androidClock;
         this.playback = playback;
@@ -90,9 +90,9 @@ class PlaybackManager implements Playback.Callback {
     }
 
     private void handlePlayRequest() {
-        Track currentQueueItem = queueManager.currentTrack();
+        Track currentQueueItem = contextManager.currentTrack();
         if (currentQueueItem != null) {
-            playback.play(currentQueueItem, queueManager.getSpeed());
+            playback.play(currentQueueItem, contextManager.getSpeed());
             serviceCallback.onPlaybackStart();
         }
     }
@@ -107,8 +107,17 @@ class PlaybackManager implements Playback.Callback {
 
     private void handlePauseRequest() {
         if (playback.isPlaying()) {
-            playback.pause(queueManager.getSpeed());
+            playback.pause(contextManager.getSpeed());
             serviceCallback.onPlaybackPause();
+        }
+    }
+
+
+    private void handlePrepare() {
+        Track currentQueueItem = contextManager.currentTrack();
+        if (currentQueueItem != null) {
+            playback.prepare(currentQueueItem, contextManager.getSpeed(), false);
+            serviceCallback.onPrepare();
         }
     }
 
@@ -116,6 +125,10 @@ class PlaybackManager implements Playback.Callback {
         playback.stop(true);
         serviceCallback.onPlaybackStop();
         updatePlaybackState();
+    }
+
+    void handleToastNewSpeed() {
+        serviceCallback.onNewSpeed();
     }
 
     void updatePlaybackState() {
@@ -144,7 +157,7 @@ class PlaybackManager implements Playback.Callback {
 
     private List<MediaSessionCompat.QueueItem> getQueueList() {
         List<MediaSessionCompat.QueueItem> upNext = new ArrayList<>();
-        for (Track track : queueManager.getUpNextQueue()) {
+        for (Track track : contextManager.getUpNextQueue()) {
             upNext.add(new MediaSessionCompat.QueueItem(getDescriptionBuilder(track).build(),
                     track.queueItemId()));
         }
@@ -199,9 +212,9 @@ class PlaybackManager implements Playback.Callback {
     @Override
     public void onCompletion() {
         Timber.d("onCompletion");
-        handleCompletion(queueManager.currentTrack());
-        if (queueManager.hasNext()) {
-            queueManager.next();
+        handleCompletion(contextManager.currentTrack());
+        if (contextManager.hasNext()) {
+            contextManager.next();
             handlePlayRequest();
         } else {
             handleStopRequest();
@@ -217,7 +230,7 @@ class PlaybackManager implements Playback.Callback {
     @Override
     public void setCurrentTrack(Track track) {
         Timber.d("setCurrentTrack %s", track);
-        queueManager.setCurrentTrack(track);
+        contextManager.setCurrentTrack(track);
     }
 
     /**
@@ -235,7 +248,7 @@ class PlaybackManager implements Playback.Callback {
         playback.stop(false);
         newPlayback.setCallback(this);
         newPlayback.setCurrentTrack(currentMediaId);
-        newPlayback.seekTo(Math.max(position, 0), queueManager.getSpeed());
+        newPlayback.seekTo(Math.max(position, 0), contextManager.getSpeed());
         newPlayback.start();
         // Finally swap the instance
         playback = newPlayback;
@@ -243,14 +256,14 @@ class PlaybackManager implements Playback.Callback {
             case STATE_BUFFERING:
             case STATE_CONNECTING:
             case STATE_PAUSED:
-                playback.pause(queueManager.getSpeed());
+                playback.pause(contextManager.getSpeed());
                 break;
             case STATE_PLAYING:
-                Track currentQueueItem = queueManager.currentTrack();
+                Track currentQueueItem = contextManager.currentTrack();
                 if (resumePlaying && currentQueueItem != null) {
-                    playback.play(currentQueueItem, queueManager.getSpeed());
+                    playback.play(currentQueueItem, contextManager.getSpeed());
                 } else if (!resumePlaying) {
-                    playback.pause(queueManager.getSpeed());
+                    playback.pause(contextManager.getSpeed());
                 } else {
                     playback.stop(true);
                 }
@@ -277,7 +290,11 @@ class PlaybackManager implements Playback.Callback {
 
         void onPlaybackPause();
 
+        void onPrepare();
+
         void onPlaybackStop();
+
+        void onNewSpeed();
 
         void onNotificationRequired();
 
@@ -323,7 +340,7 @@ class PlaybackManager implements Playback.Callback {
         @Override
         public void onSkipToQueueItem(long id) {
             Timber.d("onSkipToQueueItem %s", id);
-            queueManager.setQueuePosition(id);
+            contextManager.setQueuePosition(id);
             handlePlayRequest();
         }
 
@@ -334,9 +351,15 @@ class PlaybackManager implements Playback.Callback {
         }
 
         @Override
+        public void onPrepare() {
+            Timber.d("onPrepare");
+            handlePrepare();
+        }
+
+        @Override
         public void onSkipToNext() {
             Timber.d("onSkipToNext");
-            queueManager.next();
+            contextManager.next();
             handlePlayRequest();
         }
 
@@ -344,10 +367,10 @@ class PlaybackManager implements Playback.Callback {
         public void onSkipToPrevious() {
             Timber.d("onSkipToPrevious");
             if (playback.getCurrentStreamPosition() > 1500) {
-                playback.seekTo(0, queueManager.getSpeed());
+                playback.seekTo(0, contextManager.getSpeed());
                 return;
             }
-            queueManager.previous();
+            contextManager.previous();
             handlePlayRequest();
         }
 
@@ -360,7 +383,7 @@ class PlaybackManager implements Playback.Callback {
         @Override
         public void onSeekTo(long position) {
             Timber.d("onSeekTo %s", position);
-            playback.seekTo((int) position, queueManager.getSpeed());
+            playback.seekTo((int) position, contextManager.getSpeed());
         }
 
         @Override
@@ -370,10 +393,11 @@ class PlaybackManager implements Playback.Callback {
                 //if not android auto set speed from queumanager
                 //if android auto increment the speed
                 if (!extras.getBoolean(BUNDLE_AUTO, true)) {
-                    playback.setSpeed(queueManager.getSpeed());
+                    playback.setSpeed(contextManager.getSpeed());
                 } else {
-                    queueManager.setSpeed(queueManager.getSpeed() + .1f);
-                    playback.setSpeed(queueManager.getSpeed());
+                    contextManager.setSpeed(contextManager.getSpeed() + .1f);
+                    playback.setSpeed(contextManager.getSpeed());
+                    handleToastNewSpeed();
                 }
             }
             if (CUSTOM_ACTION_BACK.equals(action)) {

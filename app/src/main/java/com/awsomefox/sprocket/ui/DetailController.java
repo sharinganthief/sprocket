@@ -212,6 +212,7 @@ public class DetailController extends BaseMediaController implements
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.flowableSchedulers())
                 .subscribe(state -> {
+                    Timber.d("New state for detail controller: " + state);
                     switch (state) {
                         case PlaybackStateCompat.STATE_ERROR:
                         case PlaybackStateCompat.STATE_NONE:
@@ -242,7 +243,7 @@ public class DetailController extends BaseMediaController implements
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.singleSchedulers())
                 .subscribe(pair -> {
-                    queueManager.setQueue(pair.first, pair.second, 0L);
+                    contextManager.setQueue(pair.first, pair.second, 0L);
                     updateSpeed(preferences.getFloat(PlayerController.SPEED, 1.0f));
                     mediaController.play();
                 }, Rx::onError));

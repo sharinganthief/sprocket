@@ -263,16 +263,16 @@ public class PlayerController extends BaseMediaController
             Objects.requireNonNull(lowerButton).setOnClickListener(v -> {
                 updateSpeed(mediaController.getSpeed() - .1f);
                 mediaController.updatePlaySpeed();
-                speedValue.setText(String.valueOf(queueManager.getSpeed()));
-                preferences.edit().putFloat(SPEED, queueManager.getSpeed()).apply();
+                speedValue.setText(String.valueOf(contextManager.getSpeed()));
+                preferences.edit().putFloat(SPEED, contextManager.getSpeed()).apply();
                 Objects.requireNonNull(speedBar).setProgress(
                         (int) (mediaController.getSpeed() * 10 - 5));
             });
             Objects.requireNonNull(higherButton).setOnClickListener(v -> {
                 updateSpeed(mediaController.getSpeed() + .1f);
                 mediaController.updatePlaySpeed();
-                speedValue.setText(String.valueOf(queueManager.getSpeed()));
-                preferences.edit().putFloat(SPEED, queueManager.getSpeed()).apply();
+                speedValue.setText(String.valueOf(contextManager.getSpeed()));
+                preferences.edit().putFloat(SPEED, contextManager.getSpeed()).apply();
                 Objects.requireNonNull(speedBar).setProgress(
                         (int) (mediaController.getSpeed() * 10 - 5));
             });
@@ -342,7 +342,7 @@ public class PlayerController extends BaseMediaController
                 .compose(rx.flowableSchedulers())
                 .subscribe(this::updatePlayButton, Rx::onError));
 
-        disposables.add(queueManager.queue()
+        disposables.add(contextManager.queue()
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.flowableSchedulers())
                 .subscribe(pair -> {
@@ -377,7 +377,6 @@ public class PlayerController extends BaseMediaController
 
         authorBook.setText(String.format(dotSpacer, track.albumTitle(), track.artistTitle()));
         trackTitle.setText(String.format(chapterTitle, track.index()));
-        persistCurrentTrack(track);
     }
 
     @Override

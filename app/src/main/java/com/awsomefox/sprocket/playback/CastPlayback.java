@@ -166,6 +166,23 @@ class CastPlayback implements Playback {
     }
   }
 
+  @Override
+  public void prepare(Track track, float speed, boolean playOnFocus) {
+    try {
+      loadMedia(track, playOnFocus, speed);
+      state = PlaybackStateCompat.STATE_BUFFERING;
+      if (callback != null) {
+        callback.onPlaybackStatusChanged();
+      }
+    } catch (JSONException e) {
+      Timber.e(e, "Exception loading media");
+      state = PlaybackStateCompat.STATE_ERROR;
+      if (callback != null) {
+        callback.onPlaybackStatusChanged();
+      }
+    }
+  }
+
     @Override
     public void pause(float speed) {
     try {

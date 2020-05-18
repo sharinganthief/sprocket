@@ -56,5 +56,7 @@
     <string name="_1_0">1.0</string>
     <string name="plus">+</string>
     <string name="minus">-</string>
+    <string name="mark_as_seen_unseen">Mark as seen/unseen</string>
+    <string name="download_chapter">Download chapter</string>
 
 </resources>

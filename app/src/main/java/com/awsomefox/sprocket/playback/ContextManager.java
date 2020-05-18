@@ -26,7 +26,7 @@ import java.util.List;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
-public class QueueManager {
+public class ContextManager {
 
     private final BehaviorRelay<Pair<List<Track>, Integer>> queueRelay =
             BehaviorRelay.createDefault(new Pair<>(Collections.emptyList(), 0));
@@ -34,7 +34,7 @@ public class QueueManager {
     private int position;
     private float speed = 1.0f;
 
-    public QueueManager() {
+    public ContextManager() {
     }
 
     public float getSpeed() {

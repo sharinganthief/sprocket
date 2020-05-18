@@ -32,26 +32,26 @@ import okhttp3.HttpUrl;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-public class QueueManagerTest {
+public class ContextManagerTest {
 
-  private QueueManager queueManager;
+  private ContextManager contextManager;
   private List<Track> queue;
 
   @Before
   public void setup() {
-    queueManager = new QueueManager();
+    contextManager = new ContextManager();
     queue = Arrays.asList(
             createTrack(100),
             createTrack(200),
             createTrack(300),
             createTrack(400),
             createTrack(500));
-    queueManager.setQueue(new ArrayList<>(queue), 1000, 0L);
+    contextManager.setQueue(new ArrayList<>(queue), 1000, 0L);
   }
 
   @Test
   public void currentQueue() {
-    TestSubscriber<Pair<List<Track>, Integer>> test = queueManager.queue().take(1).test();
+    TestSubscriber<Pair<List<Track>, Integer>> test = contextManager.queue().take(1).test();
     test.awaitTerminalEvent();
 
     List<Track> actualQueue = test.values().get(0).first;
@@ -64,16 +64,16 @@ public class QueueManagerTest {
 
   @Test
   public void currentTrack() {
-    Track actualTrack = queueManager.currentTrack();
+    Track actualTrack = contextManager.currentTrack();
     assertThat(actualTrack, is(queue.get(0)));
   }
 
   @Test
   public void setQueuePosition() {
-    queueManager.setQueuePosition(queue.get(3).queueItemId());
-    assertThat(queueManager.currentTrack(), is(queue.get(3)));
+    contextManager.setQueuePosition(queue.get(3).queueItemId());
+    assertThat(contextManager.currentTrack(), is(queue.get(3)));
 
-    TestSubscriber<Pair<List<Track>, Integer>> test = queueManager.queue().take(1).test();
+    TestSubscriber<Pair<List<Track>, Integer>> test = contextManager.queue().take(1).test();
     test.awaitTerminalEvent();
 
     int actualPosition = test.values().get(0).second;
@@ -82,15 +82,15 @@ public class QueueManagerTest {
 
   @Test
   public void setExistingTrack() {
-    queueManager.setCurrentTrack(queue.get(3));
-    assertThat(queueManager.currentTrack(), is(queue.get(3)));
+    contextManager.setCurrentTrack(queue.get(3));
+    assertThat(contextManager.currentTrack(), is(queue.get(3)));
   }
 
   @Test
   public void setNewTrack() {
     Track expectedTrack = createTrack(20);
-    queueManager.setCurrentTrack(expectedTrack);
-    assertThat(queueManager.currentTrack(), is(expectedTrack));
+    contextManager.setCurrentTrack(expectedTrack);
+    assertThat(contextManager.currentTrack(), is(expectedTrack));
   }
 
   private Track createTrack(int index) {

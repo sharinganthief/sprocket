@@ -2,14 +2,15 @@ buildscript {
     ext.versions = [
             'compile_sdk'  : 29,
             'build_tools'  : '29.0.2',
-            'min_sdk'      : 21,
+            'min_sdk'      : 24,
             'target_sdk'   : 29,
             'androidx'     : [
                     'appcompat'   : '1.1.0',
                     'core'        : '1.2.0-beta02',
                     'mediarouter' : '1.1.0',
                     'material'    : '1.2.0-alpha06',
-                    'recyclerview': '1.2.0-alpha02'
+                    'recyclerview': '1.2.0-alpha02',
+                    'room'        : '2.2.5'
             ],
             'play_services': [
                     'cast': '18.1.0',

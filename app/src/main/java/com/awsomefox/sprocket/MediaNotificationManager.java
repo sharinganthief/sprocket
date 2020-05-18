@@ -41,7 +41,7 @@ import androidx.media.app.NotificationCompat.MediaStyle;
 import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.playback.MediaController;
 import com.awsomefox.sprocket.playback.MusicService;
-import com.awsomefox.sprocket.playback.QueueManager;
+import com.awsomefox.sprocket.playback.ContextManager;
 import com.awsomefox.sprocket.ui.SprocketActivity;
 import com.awsomefox.sprocket.util.Rx;
 import com.bumptech.glide.Glide;
@@ -72,7 +72,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private final MusicService musicService;
     private final MediaController mediaController;
-    private final QueueManager queueManager;
+    private final ContextManager contextManager;
     private final Rx rx;
     private final NotificationManager notificationManager;
     private final PendingIntent playIntent;
@@ -89,10 +89,10 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private Notification notification;
 
     public MediaNotificationManager(MusicService service, MediaController mediaController,
-                                    QueueManager queueManager, Rx rx) {
+                                    ContextManager contextManager, Rx rx) {
         this.musicService = service;
         this.mediaController = mediaController;
-        this.queueManager = queueManager;
+        this.contextManager = contextManager;
         this.rx = rx;
 
         notificationManager = (NotificationManager) service.getSystemService(
@@ -128,7 +128,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
      * destroyed before {@link #stopNotification} is called.
      */
     public void startNotification() {
-        currentTrack = queueManager.currentTrack();
+        currentTrack = contextManager.currentTrack();
         updateNotification();
         if (notification != null) {
             observeSession();
@@ -146,7 +146,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private void observeSession() {
         Rx.dispose(disposable);
-        disposable = Flowable.combineLatest(queueManager.queue(), mediaController.state(),
+        disposable = Flowable.combineLatest(contextManager.queue(), mediaController.state(),
                 mediaController.progress(),
                 (pair, state, prog) -> {
                     boolean stopNotification = false;

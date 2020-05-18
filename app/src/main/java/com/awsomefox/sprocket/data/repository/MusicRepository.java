@@ -15,6 +15,7 @@
  */
 package com.awsomefox.sprocket.data.repository;
 
+import com.awsomefox.sprocket.data.api.model.MediaContainer;
 import com.awsomefox.sprocket.data.model.Author;
 import com.awsomefox.sprocket.data.model.Book;
 import com.awsomefox.sprocket.data.model.Library;
@@ -26,10 +27,13 @@ import com.awsomefox.sprocket.util.Pair;
 import java.util.List;
 
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import okhttp3.HttpUrl;
 
 public interface MusicRepository {
+    Observable<PlexItem> sections(HttpUrl url);
+
     Single<List<PlexItem>> browseLibrary(Library lib);
 
     Single<List<PlexItem>> browseMediaType(MediaType mediaType, int page, Integer pageSize);
@@ -44,7 +48,11 @@ public interface MusicRepository {
 
     Single<Pair<List<Track>, Long>> createPlayQueue(Track track);
 
-    Completable scrobble(HttpUrl url, String ratingKey);
+    Completable scrobble(Track track);
 
-    Completable unscrobble(HttpUrl url, String ratingKey);
+    Completable unscrobble(Track track);
+
+    Completable addTracks(List<Track> tracks);
+
+    Completable addLibraries(List<Library> libraries);
 }

@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.OnClick;
+import timber.log.Timber;
 
 import static com.bluelinelabs.conductor.rxlifecycle2.ControllerEvent.DETACH;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
@@ -99,13 +100,14 @@ public class MiniPlayerController extends BaseMediaController {
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.flowableSchedulers())
                 .subscribe(this::updatePlayButton, Rx::onError));
-        disposables.add(queueManager.queue()
+        disposables.add(contextManager.queue()
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.flowableSchedulers())
                 .subscribe(pair -> updateTrackInfo(pair.first.get(pair.second)), Rx::onError));
     }
 
     private void updatePlayButton(@State int state) {
+        Timber.d("New state for minicontroller: " + state);
         if (state == PlaybackStateCompat.STATE_PLAYING
                 || state == PlaybackStateCompat.STATE_BUFFERING) {
             playPauseButton.setImageState(PAUSE, true);
@@ -123,6 +125,5 @@ public class MiniPlayerController extends BaseMediaController {
                 .load(track.thumb())
                 .transition(withCrossFade())
                 .into(albumThumb);
-        persistCurrentTrack(track);
     }
 }

@@ -92,7 +92,7 @@ public class BrowserController extends BaseMediaController implements
     @Inject
     Rx rx;
     private EndScrollListener endScrollListener;
-    private List<Library> libs = Collections.emptyList();
+    private List<PlexItem> libs = Collections.emptyList();
     private Library currentLib;
     private MediaType mediaType;
     private int currentPage = -1;
@@ -235,12 +235,13 @@ public class BrowserController extends BaseMediaController implements
                 .subscribe(libs -> {
                     String persistedLibrary =
                             preferences.getString(LIBRARY_PREFERENCE, "1234");
+
                     BrowserController.this.libs = libs;
 
                     ArrayList<String> libNames = new ArrayList<>();
                     int currentPosition = 0;
                     for (int i = 0; i < libs.size(); ++i) {
-                        Library lib = libs.get(i);
+                        Library lib = (Library) libs.get(i);
                         libNames.add(lib.name());
                         if (lib.equals(currentLib) || lib.uuid().equals(persistedLibrary)) {
                             currentPosition = i;
@@ -309,6 +310,7 @@ public class BrowserController extends BaseMediaController implements
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.flowableSchedulers())
                 .subscribe(state -> {
+                    Timber.d("New state for browser controller: " + state);
                     switch (state) {
                         case PlaybackStateCompat.STATE_ERROR:
                         case PlaybackStateCompat.STATE_NONE:
@@ -345,7 +347,7 @@ public class BrowserController extends BaseMediaController implements
                 .compose(bindUntilEvent(DETACH))
                 .compose(rx.singleSchedulers())
                 .subscribe(pair -> {
-                    queueManager.setQueue(pair.first, pair.second, 0L);
+                    contextManager.setQueue(pair.first, pair.second, 0L);
                     updateSpeed(preferences.getFloat(PlayerController.SPEED, 1.0f));
                     mediaController.play();
                 }, Rx::onError));
@@ -354,8 +356,8 @@ public class BrowserController extends BaseMediaController implements
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         if (position < libs.size()) {
-            preferences.edit().putString(LIBRARY_PREFERENCE, libs.get(position).uuid()).apply();
-            browseLibrary(libs.get(position), false);
+            preferences.edit().putString(LIBRARY_PREFERENCE, ((Library)libs.get(position)).uuid()).apply();
+            browseLibrary((Library)libs.get(position), false);
         }
     }
 

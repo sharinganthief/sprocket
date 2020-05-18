@@ -31,12 +31,13 @@ import com.awsomefox.sprocket.R;
 import com.awsomefox.sprocket.data.model.Track;
 import com.awsomefox.sprocket.data.repository.MusicRepository;
 import com.awsomefox.sprocket.playback.MediaController;
-import com.awsomefox.sprocket.playback.QueueManager;
+import com.awsomefox.sprocket.playback.ContextManager;
 import com.awsomefox.sprocket.ui.adapter.ClickableViewHolder;
 
 import java.util.Objects;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import io.reactivex.observers.DisposableCompletableObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -47,7 +48,7 @@ abstract class BaseMediaController extends BaseController {
     @Inject
     MusicRepository musicRepository;
     @Inject
-    QueueManager queueManager;
+    ContextManager contextManager;
 
     SharedPreferences preferences;
 
@@ -74,7 +75,7 @@ abstract class BaseMediaController extends BaseController {
                 Objects.requireNonNull(getActivity()));
         builder.setTitle(R.string.mark_unstarted)
                 .setPositiveButton(R.string.yes, (dialog, id) -> {
-                    musicRepository.unscrobble(plexItem.uri(), plexItem.ratingKey())
+                    musicRepository.unscrobble(plexItem)
                             .subscribeOn(Schedulers.io())
                             .subscribe(new DisposableCompletableObserver() {
                                 @Override
@@ -99,7 +100,7 @@ abstract class BaseMediaController extends BaseController {
                 Objects.requireNonNull(getActivity()));
         builder.setTitle(R.string.mark_finshed)
                 .setPositiveButton(R.string.yes, (dialog, id) -> {
-                    musicRepository.scrobble(plexItem.uri(), plexItem.ratingKey())
+                    musicRepository.scrobble(plexItem)
                             .subscribeOn(Schedulers.io())
                             .subscribe(new DisposableCompletableObserver() {
                                 @Override
@@ -120,14 +121,7 @@ abstract class BaseMediaController extends BaseController {
     }
 
     void updateSpeed(float speed) {
-        queueManager.setSpeed(speed);
-        mediaController.setSpeed(queueManager.getSpeed());
-    }
-
-    void persistCurrentTrack(Track track) {
-        preferences.edit().putString("trackUri", track.uri().toString()).apply();
-        preferences.edit().putString("trackKey", track.key()).apply();
-        preferences.edit().putString("trackParentKey", track.parentKey()).apply();
-        preferences.edit().putString("trackLibraryId", track.libraryId()).apply();
+        contextManager.setSpeed(speed);
+        mediaController.setSpeed(contextManager.getSpeed());
     }
 }

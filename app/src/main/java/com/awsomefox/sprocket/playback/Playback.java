@@ -74,6 +74,13 @@ interface Playback {
   void play(Track track, float speed);
 
   /**
+   * @param track to play
+   * @param speed
+   * @param playOnFocus
+   */
+  void prepare(Track track, float speed, boolean playOnFocus);
+
+  /**
    * Pause the current playing track
    */
   void pause(float speed);

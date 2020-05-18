@@ -25,6 +25,10 @@ afterEvaluate {
 }
 
 android {
+    dexOptions {
+        incremental true
+        javaMaxHeapSize "4g"
+    }
     compileSdkVersion versions.compile_sdk
     buildToolsVersion versions.build_tools
     defaultConfig {
@@ -83,6 +87,11 @@ dependencies {
     annotationProcessor "com.ryanharter.auto.value:auto-value-moshi:${versions.automoshi}"
     annotationProcessor "com.ryanharter.auto.value:auto-value-parcel:${versions.autoparcel}"
     compile "com.ryanharter.auto.value:auto-value-parcel-adapter:${versions.autoparcel}"
+
+    implementation "androidx.room:room-runtime:${versions.androidx.room}"
+    annotationProcessor "androidx.room:room-compiler:${versions.androidx.room}" // For Kotlin use kapt instead of annotationProcessor
+    // optional - RxJava support for Room
+    implementation "androidx.room:room-rxjava2:${versions.androidx.room}"
 
     implementation "com.google.dagger:dagger:${versions.dagger}"
     annotationProcessor "com.google.dagger:dagger-compiler:${versions.dagger}"

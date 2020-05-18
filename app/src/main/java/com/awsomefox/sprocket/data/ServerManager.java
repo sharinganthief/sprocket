@@ -17,6 +17,8 @@ package com.awsomefox.sprocket.data;
 
 import android.text.TextUtils;
 
+import com.awsomefox.sprocket.data.model.PlexItem;
+import com.awsomefox.sprocket.data.repository.MusicRepository;
 import com.jakewharton.rxrelay2.BehaviorRelay;
 import com.awsomefox.sprocket.data.api.MediaService;
 import com.awsomefox.sprocket.data.api.PlexService;
@@ -33,6 +35,7 @@ import javax.inject.Singleton;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import okhttp3.HttpUrl;
@@ -40,19 +43,19 @@ import okhttp3.HttpUrl;
 @Singleton
 public class ServerManager {
 
-  private final BehaviorRelay<List<Library>> libsRelay = BehaviorRelay.create();
+  private final BehaviorRelay<List<PlexItem>> libsRelay = BehaviorRelay.create();
   private final PlexService plex;
-  private final MediaService media;
+  private final MusicRepository musicRepository;
   private final Rx rx;
   private Disposable disposable;
 
-  @Inject ServerManager(PlexService plex, MediaService media, Rx rx) {
+  @Inject ServerManager(PlexService plex, MusicRepository musicRepository, Rx rx) {
     this.plex = plex;
-    this.media = media;
+    this.musicRepository = musicRepository;
     this.rx = rx;
   }
 
-  public Flowable<List<Library>> libs() {
+  public Flowable<List<PlexItem>> libs() {
     return libsRelay.toFlowable(BackpressureStrategy.LATEST);
   }
 
@@ -86,15 +89,7 @@ public class ServerManager {
     return builder.build();
   }
 
-  private Function<Server, Observable<Library>> createLibrary() {
-    return server -> media.sections(server.uri())
-        .flatMap(container -> Observable.fromIterable(container.directories))
-        .filter(section -> TextUtils.equals(section.type, "artist"))
-        .flatMap(section -> Observable.just(Library.builder()
-            .uuid(section.uuid)
-            .key(section.key)
-            .name(section.title)
-            .uri(server.uri())
-            .build()));
+  private Function<Server, Observable<PlexItem>>createLibrary() {
+    return server -> musicRepository.sections(server.uri());
   }
 }

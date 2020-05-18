@@ -16,6 +16,8 @@
 package com.awsomefox.sprocket;
 
 import com.awsomefox.sprocket.data.DataModule;
+import com.awsomefox.sprocket.data.local.LocalDBModule;
+import com.awsomefox.sprocket.data.repository.RepositoryModule;
 import com.awsomefox.sprocket.playback.PlaybackModule;
 import com.awsomefox.sprocket.util.Rx;
 
@@ -29,6 +31,8 @@ import dagger.Component;
     DataModule.class,
     PlaybackModule.class,
     Rx.RxModule.class,
-    SprocketModule.class
+    SprocketModule.class,
+    LocalDBModule.class,
+    RepositoryModule.class
 }) interface SprocketComponent extends AppComponent {
 }
